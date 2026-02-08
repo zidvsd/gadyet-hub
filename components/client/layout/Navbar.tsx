@@ -2,7 +2,7 @@
 
 import { ShoppingCart, Bell, User, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useAuthFromCookies } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import LogoutButton from "@/components/ui/logout";
 import { ModeToggle } from "@/components/ModeToggle";
@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/store/useCart";
 import { useSearchParams } from "next/navigation";
 export default function Navbar() {
-  const { role, loading: AuthLoading } = useAuthFromCookies();
+  const { role, loading: AuthLoading } = useAuth();
   const { users, loading: userLoading, fetchUsers } = useUsers();
   const [searchTerm, setSearchTerm] = useState("");
   const { items, fetchCart } = useCart();

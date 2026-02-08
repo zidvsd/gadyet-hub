@@ -12,6 +12,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { data: existingUser } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: "User already exits" },
+        { status: 400 },
+      );
+    }
+
     const { data: signUpData, error: signUpError } =
       await supabaseAdmin.auth.signUp({
         email,
@@ -34,17 +47,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: existingUser } = await supabaseAdmin
-      .from("users")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
+    const { error: adminUpdateError } =
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        app_metadata: { role: "user" },
+      });
 
-    if (existingUser) {
-      return NextResponse.json(
-        { success: false, message: "User already exits" },
-        { status: 400 },
-      );
+    if (adminUpdateError) {
+      console.error("Admin Update Error:", adminUpdateError.message);
     }
 
     const { error: insertError } = await supabaseAdmin.from("users").upsert(

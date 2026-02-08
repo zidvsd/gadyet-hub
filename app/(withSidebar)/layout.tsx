@@ -1,19 +1,22 @@
 "use client";
-import "../globals.css";
-import { AppSidebar } from "@/components/AppSidebar";
+import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { clientMenu } from "@/lib/layoutMenus";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, Search } from "lucide-react";
+import Link from "next/link";
+
+// Custom imports
+import { AppSidebar } from "@/components/AppSidebar";
 import Navbar from "@/components/client/layout/Navbar";
 import Footer from "@/components/client/layout/Footer";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useUsers } from "@/store/useUsers";
-import { useEffect } from "react";
-import { ShoppingCart, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { getRoleFromCookie } from "@/lib/utils";
-import { useCart } from "@/store/useCart";
 import { PageTransition } from "@/components/animations/PageTransition";
+
+// Stores & Utils
+import { useUsers } from "@/store/useUsers";
+import { useCart } from "@/store/useCart";
+import { getRoleFromCookie } from "@/lib/utils";
+import { clientMenu } from "@/lib/layoutMenus";
 export default function ClientLayout({
   children,
 }: {
@@ -21,12 +24,15 @@ export default function ClientLayout({
 }) {
   const { fetchUsers } = useUsers();
   const { fetchCart, items } = useCart();
+
   const role = getRoleFromCookie();
+
   useEffect(() => {
-    fetchUsers();
-    fetchCart();
-  }, [fetchUsers]);
+    Promise.all([fetchUsers(), fetchCart()]);
+  }, [fetchUsers, fetchCart]);
+
   const publicPages = ["/"];
+
   return (
     <>
       <ProtectedRoute publicPages={publicPages}>

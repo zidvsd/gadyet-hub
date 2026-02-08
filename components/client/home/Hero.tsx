@@ -1,17 +1,11 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-
+import { useScrollTo } from "@/hooks/use-scroll-to";
 export default function Hero() {
-  function handleScroll() {
-    document.getElementById("categories")?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }
-
+  const scrollTo = useScrollTo();
   return (
     <section className="relative h-[480px] md:h-[520px] flex items-center overflow-hidden ">
       {/* Background */}
@@ -21,11 +15,11 @@ export default function Hero() {
           src="/hero-bg.jpg"
           alt="Hero"
           fill
+          fetchPriority="high"
           priority
           className="object-cover"
         />
 
-        {/* Gradient overlay (ONLY affects image) */}
         <div className="absolute inset-0 bg-linear-to-r from-background/95 via-background/75 to-background/30" />
       </div>
 
@@ -52,7 +46,11 @@ export default function Hero() {
               </Button>
             </Link>
 
-            <Button onClick={handleScroll} variant="secondary" size={"lg"}>
+            <Button
+              onClick={() => scrollTo("featured-products", 80)}
+              variant="secondary"
+              size={"lg"}
+            >
               Learn More
             </Button>
           </div>

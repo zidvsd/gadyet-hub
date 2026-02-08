@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import {
   Cpu,
@@ -27,7 +26,7 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations/StaggerContainer";
-// Map icon string to actual Lucide icon component
+
 const iconMap: Record<string, any> = {
   Cpu,
   Smartphone,

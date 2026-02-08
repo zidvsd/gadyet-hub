@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Eye, ShoppingCart } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { useProducts } from "@/store/useProducts";
-import { useRouter } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
+import ProductsCardSkeleton from "../ProductsCardSkeleton";
 import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations/StaggerContainer";
 import ProductCard from "../ProductCard";
+
 export default function FeaturedProducts() {
   const { products, fetchProducts, loading } = useProducts();
   const featuredProducts = products.filter((p) => p.is_featured);
@@ -20,8 +20,14 @@ export default function FeaturedProducts() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const router = useRouter();
+  // 1. EARLY RETURN: This covers BOTH initial JS load and data fetching
+  if (loading || featuredProducts.length === 0) {
+    return (
+      <ProductsCardSkeleton className="bg-sidebar dark:bg-muted" count={6} />
+    );
+  }
 
+  // 2. REAL CONTENT: No need for a ternary here anymore!
   return (
     <section className="bg-sidebar dark:bg-muted py-16">
       <div className="custom-container">
@@ -36,33 +42,22 @@ export default function FeaturedProducts() {
           <Link className="hidden md:block" href="/categories">
             <Button className="flex items-center gap-2" variant="ghost">
               View All
-              <ArrowRight />
+              <ArrowRight className="size-4" />
             </Button>
           </Link>
         </div>
 
         {/* Grid */}
         <div className="mt-8">
-          {" "}
-          {/* Removed grid classes from here */}
-          {loading ? (
+          <StaggerContainer inView={true}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <ProductCard key={i} loading />
+              {featuredProducts.map((product) => (
+                <StaggerItem key={product.id}>
+                  <ProductCard product={product} />
+                </StaggerItem>
               ))}
             </div>
-          ) : (
-            <StaggerContainer inView={true}>
-              {/* This is now the ONLY grid definition for the products */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredProducts.map((product) => (
-                  <StaggerItem key={product.id}>
-                    <ProductCard product={product} />
-                  </StaggerItem>
-                ))}
-              </div>
-            </StaggerContainer>
-          )}
+          </StaggerContainer>
         </div>
       </div>
     </section>

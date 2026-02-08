@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "./lib/supabase/middleware";
 export async function proxy(request: NextRequest) {
   const { user, response } = await updateSession(request);
-  console.log(user, response);
   const url = request.nextUrl.pathname;
 
   const protectedUserPages = [
