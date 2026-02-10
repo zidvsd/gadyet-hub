@@ -1,12 +1,16 @@
 import { create } from "zustand";
-import { getRoleFromCookie } from "@/lib/utils";
 import { Order } from "@/lib/types/orders";
 
 interface OrdersState {
   orders: Order[];
   loading: boolean;
   error: string | null;
-  fetchOrders: (userId?: string, force?: boolean) => Promise<void>;
+  lastUpdated: number | null;
+  fetchOrders: (
+    role?: "admin" | "user",
+    userId?: string,
+    force?: boolean,
+  ) => Promise<void>;
   clearOrders: () => void;
   updateOrderLocally: (updatedOrder: Order) => void;
 }
@@ -15,26 +19,35 @@ export const useOrders = create<OrdersState>((set, get) => ({
   orders: [],
   loading: false,
   error: null,
+  lastUpdated: null,
+
   updateOrderLocally: (updatedOrder) => {
     set((state) => ({
       orders: state.orders.map((order) =>
-        // Find the order by its ID and replace the entire object
         order.id === updatedOrder.id ? updatedOrder : order,
       ),
     }));
   },
-  fetchOrders: async (userId?: string, force = false) => {
-    const { orders, loading } = get();
 
-    if (!force && (loading || orders.length > 0)) return;
+  fetchOrders: async (role = "user", userId?: string, force = false) => {
+    const { orders, loading, lastUpdated } = get();
+    const now = Date.now();
+
+    if (
+      !force &&
+      orders.length > 0 &&
+      lastUpdated &&
+      now - lastUpdated < 120000
+    ) {
+      return;
+    }
+    if (!force && loading) return;
 
     set({ loading: true, error: null });
+
     try {
-      const role = getRoleFromCookie();
-
-      let endpoint =
-        role === "admin" ? "/api/admin/orders" : "/api/client/orders";
-
+      const isAdmin = role === "admin";
+      let endpoint = isAdmin ? "/api/admin/orders" : "/api/client/orders";
       if (userId) {
         endpoint += `?user_id=${userId}`;
       }
@@ -48,12 +61,17 @@ export const useOrders = create<OrdersState>((set, get) => ({
       });
 
       const json = await res.json();
-      if ("success" in json && json.success === false) {
+      console.log("Admin API Response:", json);
+      if (json.success === false) {
         set({ error: json.error, loading: false, orders: [] });
         return;
       }
 
-      set({ orders: json.data ?? json, loading: false });
+      set({
+        orders: json.data ?? json,
+        loading: false,
+        lastUpdated: Date.now(),
+      });
     } catch (error: any) {
       set({
         error: error.message ?? "Unknown error",
@@ -63,5 +81,6 @@ export const useOrders = create<OrdersState>((set, get) => ({
     }
   },
 
-  clearOrders: () => set({ orders: [], error: null, loading: false }),
+  clearOrders: () =>
+    set({ orders: [], error: null, loading: false, lastUpdated: null }),
 }));

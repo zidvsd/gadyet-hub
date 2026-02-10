@@ -9,18 +9,11 @@ import { useUsers } from "@/store/useUsers";
 import React from "react";
 import { Suspense } from "react";
 export default function DashboardPage() {
-  const { fetchOrders, orders, loading: ordersLoading } = useOrders();
-  const { fetchProducts, products, loading: productsLoading } = useProducts();
-  const { fetchUsers, users, loading: usersLoading } = useUsers();
+  const { orders, loading: ordersLoading } = useOrders();
+  const { products, loading: productsLoading } = useProducts();
+  const { users, loading: usersLoading } = useUsers();
 
   const loading = ordersLoading || productsLoading || usersLoading;
-
-  useEffect(() => {
-    const loadData = async () => {
-      await Promise.all([fetchOrders(), fetchProducts(), fetchUsers()]);
-    };
-    loadData();
-  }, [fetchOrders, fetchProducts, fetchUsers]);
 
   const stats = React.useMemo(
     () => ({

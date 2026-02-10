@@ -1,14 +1,29 @@
 "use client";
 import "../globals.css";
+import { useEffect } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { adminMenu } from "@/lib/layoutMenus";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrders } from "@/store/useOrders";
+import { useUsers } from "@/store/useUsers";
 import Link from "next/link";
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { role, loading: authLoading } = useAuth();
+  const { fetchOrders } = useOrders();
+  const { fetchUsers } = useUsers();
+
+  useEffect(() => {
+    if (!authLoading && role === "admin") {
+      Promise.all([fetchOrders("admin"), fetchUsers()]).catch((err) =>
+        console.error("Admin data fetch failed:", err),
+      );
+    }
+  }, [role, authLoading]);
   return (
     <SidebarProvider>
       <AppSidebar items={adminMenu} />

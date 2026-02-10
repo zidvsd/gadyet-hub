@@ -5,19 +5,13 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrders } from "@/store/useOrders";
 import { useUsers } from "@/store/useUsers";
-import { useEffect } from "react";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { toast } from "sonner";
 type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 export default function OrdersPage() {
-  const {
-    fetchOrders,
-    orders,
-    loading: ordersLoading,
-    updateOrderLocally,
-  } = useOrders();
-  const { fetchUsers, users, loading: usersLoading } = useUsers();
+  const { orders, loading: ordersLoading, updateOrderLocally } = useOrders();
+  const { users, loading: usersLoading } = useUsers();
 
   const loading = ordersLoading || usersLoading;
   async function updateOrderStatus(id: string, newStatus: OrderStatus) {
@@ -45,10 +39,6 @@ export default function OrdersPage() {
       console.error(error);
     }
   }
-  useEffect(() => {
-    fetchOrders(undefined, true);
-    fetchUsers();
-  }, [fetchOrders, fetchUsers]);
 
   const totalOrders = orders.length;
   const pendingOrders = orders.filter(

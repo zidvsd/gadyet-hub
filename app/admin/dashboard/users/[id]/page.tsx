@@ -48,7 +48,7 @@ export default function Page() {
   useEffect(() => {
     fetchUsers();
     fetchProducts();
-    if (userId) fetchOrders(userId, true);
+    if (userId) fetchOrders("admin", userId, true);
   }, [userId, fetchUsers, fetchOrders, fetchProducts]);
 
   // Compute stats
