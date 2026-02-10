@@ -5,26 +5,10 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-providers";
 import NextTopLoader from "nextjs-toploader";
 import { MotionProvider } from "@/lib/providers/MotionProvider";
-const roboto = Roboto({
-  subsets: ["latin"],
-  variable: "--font-roboto",
-  display: "swap",
-});
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-montserrat",
-  display: "swap",
-});
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap",
-});
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-Lora",
   display: "swap",
 });
 

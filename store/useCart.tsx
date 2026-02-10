@@ -1,16 +1,16 @@
 import { create } from "zustand";
 import { toast } from "sonner";
-import { getRoleFromCookie } from "@/lib/utils";
 import { CartItem } from "@/lib/types/cart";
 interface CartState {
   items: CartItem[];
   loading: boolean;
   error: string | null;
+  lastUpdated: number | null;
   isAdding: boolean;
-  fetchCart: (force?: boolean, silent?: boolean) => Promise<void>; // Fetch all cart items
-  addToCart: (productId: string, quantity?: number) => Promise<boolean>; // Add locally (and optionally send to backend)
+  fetchCart: (force?: boolean, silent?: boolean) => Promise<void>;
+  addToCart: (productId: string, quantity?: number) => Promise<boolean>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
-  removeFromCart: (cartItemId: number) => Promise<void>; // Add locally (and optionally send to backend)
+  removeFromCart: (cartItemId: number) => Promise<void>;
   clearCart: () => void;
 }
 
@@ -19,10 +19,20 @@ export const useCart = create<CartState>((set, get) => ({
   loading: false,
   isAdding: false,
   error: null,
+  lastUpdated: null,
 
   fetchCart: async (force = false, silent = false) => {
-    const currentItems = get().items;
-    if (currentItems.length > 0 && !force) return;
+    const { items, lastUpdated } = get();
+    const now = Date.now();
+
+    if (
+      !force &&
+      items.length > 0 &&
+      lastUpdated &&
+      now - lastUpdated < 120000
+    ) {
+      return;
+    }
     if (!silent) set({ loading: true, error: null });
 
     try {
@@ -36,7 +46,11 @@ export const useCart = create<CartState>((set, get) => ({
         return;
       }
 
-      set({ items: json.data.items ?? [], loading: false });
+      set({
+        items: json.data.items ?? [],
+        lastUpdated: Date.now(),
+        loading: false,
+      });
     } catch (error: any) {
       set({
         error: error.message ?? "Unknown error",
@@ -48,11 +62,6 @@ export const useCart = create<CartState>((set, get) => ({
   },
 
   addToCart: async (productId, quantity = 1): Promise<boolean> => {
-    const role = getRoleFromCookie();
-    if (!role) {
-      throw new Error("Please login to add items to cart");
-    }
-
     set({ isAdding: true, error: null });
     try {
       const res = await fetch("/api/client/user/cart", {
@@ -78,6 +87,7 @@ export const useCart = create<CartState>((set, get) => ({
   },
 
   updateQuantity: async (cartItemId, quantity) => {
+    const previousItems = get().items;
     set((state) => ({
       items: state.items.map((item) =>
         item.id === cartItemId ? { ...item, quantity } : item,
@@ -92,17 +102,22 @@ export const useCart = create<CartState>((set, get) => ({
         body: JSON.stringify({ quantity: quantity }),
       });
       const json = await res.json();
-      if (!json.success) {
-        toast.error(json.error || "Failed to update quantity");
-        await useCart.getState().fetchCart();
-      }
+      if (!json.success) throw new Error(json.error);
+
+      set({ lastUpdated: Date.now() });
     } catch (err: any) {
       toast.error(err.message || "Failed to update quantity");
-      await useCart.getState().fetchCart(); // revert on error
+      set({ items: previousItems }); // Revert on error
     }
   },
 
   removeFromCart: async (cartItemId) => {
+    const previousItems = get().items;
+
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== cartItemId),
+    }));
+
     try {
       const res = await fetch(`/api/client/user/cart/${cartItemId}`, {
         method: "DELETE",
@@ -110,17 +125,14 @@ export const useCart = create<CartState>((set, get) => ({
       });
       const json = await res.json();
 
-      if (!json.success) {
-        toast.error(json.error || "Failed to remove item");
-        return;
-      }
-      set((state) => ({
-        items: state.items.filter((item) => item.id !== cartItemId),
-      }));
-      toast.success("Item removed from cart!");
+      if (!json.success) throw new Error(json.error);
+
+      toast.success("Item removed");
+      set({ lastUpdated: Date.now() });
     } catch (err: any) {
       toast.error(err.message || "Failed to remove item");
+      set({ items: previousItems }); // Revert
     }
   },
-  clearCart: () => set({ items: [], error: null }),
+  clearCart: () => set({ items: [], error: null, lastUpdated: null }),
 }));

@@ -1,55 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 export function useAuth() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const updateAuthState = useCallback((currentUser: User | null) => {
+    setUser(currentUser);
+    const userRole =
+      currentUser?.app_metadata?.role ||
+      currentUser?.user_metadata?.role ||
+      null;
+
+    setRole(userRole);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
-    const getUser = async () => {
+    const getInitialSession = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        const currentUser = session?.user ?? null;
-
-        setUser(currentUser);
-        // Priority: app_metadata (Server-set) > user_metadata (Client-set)
-        const userRole =
-          currentUser?.app_metadata?.role ||
-          currentUser?.user_metadata?.role ||
-          null;
-
-        setRole(userRole);
+        updateAuthState(session?.user ?? null);
       } catch (error) {
-        console.error("Error fetching auth:", error);
-      } finally {
+        console.error("Error fetching initial auth:", error);
         setLoading(false);
       }
     };
 
-    getUser();
+    getInitialSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user ?? null;
-
-      setUser(currentUser);
-      const userRole =
-        currentUser?.app_metadata?.role ||
-        currentUser?.user_metadata?.role ||
-        null;
-
-      setRole(userRole);
-      setLoading(false);
+      updateAuthState(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [updateAuthState]);
 
   return { user, role, loading };
 }

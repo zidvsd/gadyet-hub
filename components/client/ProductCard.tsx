@@ -9,9 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useCart } from "@/store/useCart";
 import { formatPrice } from "@/lib/utils";
-import { useState } from "react";
+import { use, useState } from "react";
 import { Spinner } from "../ui/spinner";
-
+import { useAuth } from "@/hooks/useAuth";
 interface ProductCardProps {
   product?: {
     id: string;
@@ -32,6 +32,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
+  const { user } = useAuth();
   const router = useRouter();
   if (loading || !product) {
     // Skeleton version
@@ -43,6 +44,16 @@ export default function ProductCard({
   }
   const handleAddToCart = async () => {
     if (!product) return;
+    if (!user) {
+      toast.error("Please login", {
+        description: "You need an account to add items to your cart.",
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login"),
+        },
+      });
+      return; // Exit the function before setIsAdding(true) or calling addToCart
+    }
     setIsAdding(true);
     try {
       const success = await addToCart(product.id, 1);

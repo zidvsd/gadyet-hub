@@ -15,7 +15,8 @@ import { PageTransition } from "@/components/animations/PageTransition";
 // Stores & Utils
 import { useUsers } from "@/store/useUsers";
 import { useCart } from "@/store/useCart";
-import { getRoleFromCookie } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
 import { clientMenu } from "@/lib/layoutMenus";
 export default function ClientLayout({
   children,
@@ -25,17 +26,24 @@ export default function ClientLayout({
   const { fetchUsers } = useUsers();
   const { fetchCart, items } = useCart();
 
-  const role = getRoleFromCookie();
+  const { user, role, loading } = useAuth();
 
   useEffect(() => {
-    Promise.all([fetchUsers(), fetchCart()]);
-  }, [fetchUsers, fetchCart]);
+    if (!loading && role) {
+      Promise.all([fetchUsers(), fetchCart()]);
+    }
+  }, [role, loading, fetchUsers, fetchCart]);
 
   const publicPages = ["/"];
 
   return (
     <>
-      <ProtectedRoute publicPages={publicPages}>
+      <ProtectedRoute
+        role={role}
+        user={user}
+        loading={loading}
+        publicPages={publicPages}
+      >
         {/* Desktop: Navbar + Content */}
         <div className="hidden md:block">
           <Navbar />

@@ -59,12 +59,6 @@ export default function Navbar() {
     setSearchTerm(searchParams.get("q") ?? "");
   }, [searchParams]);
 
-  // --- Initial Data Fetch ---
-  useEffect(() => {
-    fetchUsers();
-    fetchCart();
-  }, [fetchUsers, fetchCart]);
-
   return (
     <nav className="sticky top-0 bg-background border-b border-neutral-300 shadow dark:border-neutral-700 z-50">
       <div className="custom-container flex items-center justify-between py-3">
@@ -151,7 +145,7 @@ export default function Navbar() {
                   </DropdownMenuItem>
 
                   {/* Logout Button */}
-                  <div className="border-t border-muted my-1" />
+                  <div className="border-t border-muted dark:border-gray-500  my-1" />
                   <LogoutButton showText={true} />
                 </DropdownMenuContent>
               </DropdownMenu>
