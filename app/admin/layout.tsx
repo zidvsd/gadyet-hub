@@ -7,6 +7,7 @@ import { adminMenu } from "@/lib/layoutMenus";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrders } from "@/store/useOrders";
 import { useUsers } from "@/store/useUsers";
+import { useProducts } from "@/store/useProducts";
 import Link from "next/link";
 export default function AdminLayout({
   children,
@@ -16,12 +17,13 @@ export default function AdminLayout({
   const { role, loading: authLoading } = useAuth();
   const { fetchOrders } = useOrders();
   const { fetchUsers } = useUsers();
-
+  const { fetchProducts } = useProducts();
   useEffect(() => {
     if (!authLoading && role === "admin") {
-      Promise.all([fetchOrders("admin"), fetchUsers()]).catch((err) =>
-        console.error("Admin data fetch failed:", err),
-      );
+      (Promise.all([fetchOrders("admin"), fetchUsers("admin")]),
+        fetchProducts().catch((err) =>
+          console.error("Admin data fetch failed:", err),
+        ));
     }
   }, [role, authLoading]);
   return (

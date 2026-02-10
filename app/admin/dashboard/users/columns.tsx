@@ -8,15 +8,20 @@ import { Button } from "@/components/ui/button";
 export const columns: ColumnDef<User>[] = [
   {
     header: "Name",
-    accessorFn: (row) =>
-      row.last_name ? `${row.first_name} ${row.last_name}` : row.first_name,
-
+    // accessorFn is used for sorting and filtering
+    accessorFn: (row) => {
+      const first = row.first_name || "";
+      const last = row.last_name || "";
+      const full = `${first} ${last}`.trim();
+      return full || "N/A";
+    },
     cell: ({ row }) => {
       const { first_name, last_name } = row.original;
+      const fullName = `${first_name ?? ""} ${last_name ?? ""}`.trim();
+
       return (
-        <span>
-          {first_name}
-          {last_name && ` ${last_name}`}
+        <span className="font-medium">
+          {fullName.length > 0 ? fullName : "N/A"}
         </span>
       );
     },

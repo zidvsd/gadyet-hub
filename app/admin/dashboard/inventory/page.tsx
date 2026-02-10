@@ -8,13 +8,16 @@ import { DataTable } from "./data-table";
 import { toast } from "sonner";
 import { StatCard } from "@/components/ui/stat-card";
 import { Package, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+
 export default function page() {
-  const { fetchProducts, products, loading, updateProductState } =
+  const { products, loading, fetchProducts, updateProductState } =
     useProducts();
+
   const totalProducts = products.length;
   const lowStocks = products.filter((product) => product.stock <= 5).length;
   const inStocks = products.filter((product) => product.stock > 5).length;
   const noStocks = products.filter((product) => product.stock === 0).length;
+
   async function toggleFeatured(id: string, currentStatus: boolean) {
     const newStatus = !currentStatus;
 
@@ -27,7 +30,7 @@ export default function page() {
         },
         body: JSON.stringify({
           id,
-          is_featured: !newStatus,
+          is_featured: newStatus,
         }),
       });
       if (!res.ok) {
@@ -40,6 +43,7 @@ export default function page() {
     }
   }
   async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this item?")) return;
     try {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "DELETE",
@@ -49,14 +53,11 @@ export default function page() {
       }
       toast.success("Item deleted successfully");
 
-      await fetchProducts();
+      await fetchProducts(undefined, true);
     } catch (error) {
       toast.error("Failed to delete item");
     }
   }
-  useEffect(() => {
-    fetchProducts(); // fetch products when component mounts
-  }, []);
 
   return (
     <div className="w-full ">

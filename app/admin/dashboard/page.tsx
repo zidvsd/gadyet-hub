@@ -4,10 +4,8 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrders } from "@/store/useOrders";
 import { useProducts } from "@/store/useProducts";
-import { useEffect, useMemo } from "react";
 import { useUsers } from "@/store/useUsers";
 import React from "react";
-import { Suspense } from "react";
 export default function DashboardPage() {
   const { orders, loading: ordersLoading } = useOrders();
   const { products, loading: productsLoading } = useProducts();

@@ -5,7 +5,8 @@ interface ProductsState {
   products: Product[];
   loading: boolean;
   error: string | null;
-  fetchProducts: (query?: string) => Promise<void>;
+  lastUpdated: number | null;
+  fetchProducts: (query?: string, force?: boolean) => Promise<void>;
   updateProductState: (id: string, updates: Partial<Product>) => void;
   clearProducts: () => void;
 }
@@ -14,9 +15,23 @@ export const useProducts = create<ProductsState>((set, get) => ({
   products: [],
   loading: false,
   error: null,
+  lastUpdated: null,
 
-  fetchProducts: async (query?: string) => {
-    if (get().loading) return;
+  fetchProducts: async (query?: string, force?: boolean) => {
+    const { products, lastUpdated, loading } = get();
+    const now = Date.now();
+
+    if (
+      !force &&
+      !query &&
+      products.length > 0 &&
+      lastUpdated &&
+      now - lastUpdated < 120000
+    ) {
+      return;
+    }
+
+    if (loading && !force) return;
 
     set({ loading: true, error: null });
 
@@ -28,11 +43,18 @@ export const useProducts = create<ProductsState>((set, get) => ({
       if (!res.ok) throw new Error("Unable to fetch products");
 
       const json = await res.json();
+
+      if (json.success === false) {
+        set({ error: json.error, loading: false, products: [] });
+        return;
+      }
+
       const data = json.data ?? json;
+
       set({
         products: Array.isArray(data) ? data : [],
         loading: false,
-        error: json.success === false ? json.error : null,
+        lastUpdated: query ? lastUpdated : Date.now(),
       });
       set({ products: json.data ?? json, loading: false });
     } catch (err: any) {
@@ -46,5 +68,6 @@ export const useProducts = create<ProductsState>((set, get) => ({
       ),
     }));
   },
-  clearProducts: () => set({ products: [], error: null, loading: false }),
+  clearProducts: () =>
+    set({ products: [], error: null, loading: false, lastUpdated: null }),
 }));

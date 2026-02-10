@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, SquarePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,16 +33,11 @@ export default function ProductPage() {
   const cardStyle =
     "bg-card p-5  rounded-xl  border border-neutral-200 shadow-md dark:shadow-none dark:border-none";
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
   const product: Product | undefined = useMemo(
     () => products.find((p) => p.id === productId),
-    [products, productId]
+    [products, productId],
   );
 
-  // Guard clause for loading
   if (loading) {
     return (
       <div className="product-info w-full px-4 md:px-8 animate-pulse">
@@ -172,15 +167,15 @@ export default function ProductPage() {
                     product.stock === 0
                       ? stockStatusClasses.outOfStock
                       : product.stock < 5
-                      ? stockStatusClasses.lowStock
-                      : stockStatusClasses.inStock
+                        ? stockStatusClasses.lowStock
+                        : stockStatusClasses.inStock
                   }
                 >
                   {product.stock === 0
                     ? "Out of stock"
                     : product.stock < 5
-                    ? "Low stock"
-                    : "In stock"}
+                      ? "Low stock"
+                      : "In stock"}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -7,18 +7,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 export default function page() {
-  const { fetchUsers, users, loading: userLoading } = useUsers();
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const { users, loading: userLoading } = useUsers();
 
   const totalUser = users?.length ?? 0;
   const totalAdmins =
     users?.filter((user) => user.role === "admin").length ?? 0;
   const totalCustomers =
     users?.filter((user) => user.role === "user").length ?? 0;
+
   const loading = userLoading;
+
   return (
     <div>
       {loading ? (

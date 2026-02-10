@@ -15,10 +15,6 @@ export default function EditProductPage() {
 
   const { products, loading, fetchProducts } = useProducts();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const product = useMemo(
     () => products.find((p) => p.id === productId),
     [products, productId],
