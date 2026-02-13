@@ -15,12 +15,12 @@ import { Label } from "@/components/ui/label";
 import { Settings } from "lucide-react";
 import { Camera } from "lucide-react";
 import { useUsers } from "@/store/useUsers";
-import { getFirstChar } from "@/lib/utils";
 import Image from "next/image";
 import React, { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { User } from "@/lib/types/users";
+import { AvatarImage, Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function EditProfileForm({
   user,
   open,
@@ -188,10 +188,14 @@ export function EditProfileForm({
                   className="object-cover rounded-full w-full h-full"
                 />
               ) : (
-                <span className="uppercase">
-                  {getFirstChar(user.first_name ?? "")}
-                  {getFirstChar(user.last_name ?? "")}
-                </span>
+                <Avatar className="w-full h-full rounded-full">
+                  <AvatarImage
+                    className="grayscale"
+                    src="https://github.com/shadcn.png"
+                    alt="morty"
+                  />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
               )}
 
               <input

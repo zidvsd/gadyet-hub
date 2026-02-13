@@ -32,6 +32,8 @@ export default function Page() {
   }, [fetchCart]);
 
   const handleCheckOut = () => {
+    if (loading || !users[0]) return;
+
     const currentUser = users[0];
     const missingInfo =
       !currentUser?.address ||
@@ -76,6 +78,7 @@ export default function Page() {
 
       {showProfileModal && (
         <EditProfileForm
+          user={users[0]}
           open={showProfileModal}
           onOpenChange={setShowProfileModal}
         />

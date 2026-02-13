@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { EditProfileForm } from "../../forms/EditProfileForm";
 import { ProfileSkeleton } from "../../skeleton/ProfileSkeleton";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // Utils & Types
 import {
   cn,
@@ -44,7 +44,7 @@ export default function ProfileTab({
   isLoading,
 }: ProfileTabProps) {
   const [toggleTruncate, setToggleTruncate] = useState(true);
-
+  console.log(user?.avatar_url);
   // 1. Memoized Calculations
   const stats = useMemo(() => {
     const completed = orders.filter((o) => o.status === "completed");
@@ -88,10 +88,14 @@ export default function ProfileTab({
                   className="object-cover"
                 />
               ) : (
-                <span className="uppercase text-accent text-4xl font-bold select-none">
-                  {getFirstChar(user.first_name)}
-                  {getFirstChar(user.last_name || "")}
-                </span>
+                <Avatar className="w-full h-full rounded-full">
+                  <AvatarImage
+                    className="grayscale"
+                    src="https://github.com/shadcn.png"
+                    alt="morty"
+                  />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
               )}
             </div>
           </div>
