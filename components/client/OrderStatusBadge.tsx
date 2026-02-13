@@ -49,8 +49,8 @@ export default function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     >
       {/* Dynamic Icon */}
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-3">
+      <div className="flex flex-col gap-2 w-full">
+        <div className="flex items-start gap-3 ">
           <Icon className={`shrink-0 ${config.color}`} size={24} />
 
           <span className="font-bold text-foreground">Order Status</span>

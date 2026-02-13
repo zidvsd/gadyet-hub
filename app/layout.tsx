@@ -1,3 +1,5 @@
+<link rel="preconnect" href="https://yconglwkfoymamgkmtzg.supabase.co" />;
+
 import type { Metadata } from "next";
 import { Roboto, Montserrat, Lora, Inter } from "next/font/google";
 import "./globals.css";
@@ -5,6 +7,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-providers";
 import NextTopLoader from "nextjs-toploader";
 import { MotionProvider } from "@/lib/providers/MotionProvider";
+import { NotificationListener } from "@/lib/providers/RealtimeProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +39,7 @@ export default function RootLayout({
             shadow="none"
           />
           <ThemeProvider attribute="class" enableSystem>
+            <NotificationListener />
             <main>{children}</main>
             <Toaster
               toastOptions={{

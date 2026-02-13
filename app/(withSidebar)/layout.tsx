@@ -11,7 +11,8 @@ import Navbar from "@/components/client/layout/Navbar";
 import Footer from "@/components/client/layout/Footer";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { PageTransition } from "@/components/animations/PageTransition";
-
+import { supabase } from "@/lib/supabase/client";
+import { toast } from "sonner";
 // Stores & Utils
 import { useUsers } from "@/store/useUsers";
 import { useCart } from "@/store/useCart";
@@ -27,13 +28,42 @@ export default function ClientLayout({
   const { fetchUsers } = useUsers();
   const { fetchCart, items } = useCart();
   const { fetchOrders } = useOrders();
-  const { user, role, loading } = useAuth();
-
+  const { user: currentUser, role, loading } = useAuth();
   useEffect(() => {
     if (!loading && role) {
       Promise.all([fetchUsers(), fetchCart(), fetchOrders()]);
     }
   }, [role, loading, fetchUsers, fetchCart, fetchOrders]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const channel = supabase
+      .channel(`user-notifications-${currentUser.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${currentUser.id}`,
+        },
+        (payload) => {
+          // 1. Show the Toast
+          toast.success(payload.new.title, {
+            description: payload.new.message,
+          });
+
+          // 2. Refresh notification data in your global state (Zustand/Context)
+          // refreshNotificationCount();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.id]);
 
   const publicPages = ["/"];
 
@@ -41,7 +71,7 @@ export default function ClientLayout({
     <>
       <ProtectedRoute
         role={role}
-        user={user}
+        user={currentUser}
         loading={loading}
         publicPages={publicPages}
       >

@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Data Hooks (Imported directly here)
+import { useOrders } from "@/store/useOrders";
+import { useUsers } from "@/store/useUsers";
 // UI Components
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,34 +24,22 @@ import { StatCard } from "@/components/ui/stat-card";
 import { EditProfileForm } from "../../forms/EditProfileForm";
 import { ProfileSkeleton } from "../../skeleton/ProfileSkeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// Utils & Types
-import {
-  cn,
-  getFirstChar,
-  formatPrice,
-  formatDateFull,
-  truncateId,
-} from "@/lib/utils";
-import type { User } from "@/lib/types/users";
-import type { Order } from "@/lib/types/orders";
+import { formatPrice, formatDateFull, truncateId } from "@/lib/utils";
 
-interface ProfileTabProps {
-  user: User | null;
-  orders: Order[];
-  isLoading: boolean;
-}
-
-export default function ProfileTab({
-  user,
-  orders,
-  isLoading,
-}: ProfileTabProps) {
+export default function ProfileTab() {
   const [toggleTruncate, setToggleTruncate] = useState(true);
-  console.log(user?.avatar_url);
-  // 1. Memoized Calculations
+
+  // 1. Fetching data directly in the child
+  const { users, loading: userLoading } = useUsers();
+  const { orders, loading: ordersLoading } = useOrders();
+
+  const isLoading = userLoading || ordersLoading;
+  const user = users[0];
+  // 2. Memoized Calculations
   const stats = useMemo(() => {
+    if (!orders) return { totalCount: 0, completedCount: 0, totalSpent: 0 };
     const completed = orders.filter((o) => o.status === "completed");
-    const spent = completed.reduce((acc, o) => acc + o.total_price, 0);
+    const spent = completed.reduce((acc, o) => acc + (o.total_price || 0), 0);
     return {
       totalCount: orders.length,
       completedCount: completed.length,
@@ -73,15 +64,15 @@ export default function ProfileTab({
 
   return (
     <div className="animate-in fade-in duration-500 space-y-6">
-      {/* Profile Header Card */}
-      <Card className="overflow-hidden border-none shadow-sm  backdrop-blur">
+      <Card className="overflow-hidden border-none shadow-sm backdrop-blur">
         <CardContent className="flex flex-col md:flex-row items-start gap-6 p-6">
-          {/* Avatar Section */}
           <div className="relative w-28 h-28 shrink-0 mx-auto md:mx-0">
             <div className="relative w-full h-full rounded-full border-4 border-accent/10 bg-muted overflow-hidden flex items-center justify-center">
               {user.avatar_url ? (
                 <Image
-                  unoptimized
+                  sizes="112px"
+                  priority
+                  fetchPriority="high"
                   src={user.avatar_url}
                   alt="Avatar"
                   fill
@@ -92,22 +83,20 @@ export default function ProfileTab({
                   <AvatarImage
                     className="grayscale"
                     src="https://github.com/shadcn.png"
-                    alt="morty"
+                    alt="default"
                   />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback>{user.first_name?.[0]}</AvatarFallback>
                 </Avatar>
               )}
             </div>
           </div>
 
-          {/* User Primary Info */}
           <div className="flex flex-col justify-between flex-1 space-y-4 text-center md:text-left">
             <div className="space-y-2">
               <CardTitle className="text-2xl font-bold tracking-tight">
                 {user.first_name} {user.last_name}
               </CardTitle>
-
-              <div className="flex flex-col items-start justify-center md:justify-start gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <div className="grid gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Mail className="size-4" /> {user.email}
                 </div>
@@ -123,7 +112,6 @@ export default function ProfileTab({
                 </div>
               </div>
             </div>
-
             <div className="flex justify-center md:justify-start">
               <EditProfileForm user={user} />
             </div>
@@ -131,7 +119,6 @@ export default function ProfileTab({
         </CardContent>
       </Card>
 
-      {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           title="Total Orders"
@@ -153,18 +140,9 @@ export default function ProfileTab({
         />
       </div>
 
-      {/* Account Details Detail Card */}
       <Card className="border-none shadow-sm">
         <CardContent className="p-6 space-y-8">
-          <div>
-            <h2 className="text-xl font-semibold">Account Details</h2>
-            <p className="text-sm text-muted-foreground">
-              Security and identification settings
-            </p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Column */}
             <div className="space-y-6">
               <DetailItem
                 label="Full Name"
@@ -176,8 +154,6 @@ export default function ProfileTab({
                 badge="Verified"
               />
             </div>
-
-            {/* Right Column */}
             <div className="space-y-6">
               <div>
                 <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">
@@ -205,18 +181,6 @@ export default function ProfileTab({
                   </Button>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between group">
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">
-                    Password
-                  </p>
-                  <p className="text-sm font-medium">••••••••••••</p>
-                </div>
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  <KeyRound className="size-3.5 mr-1" /> Update
-                </Button>
-              </div>
             </div>
           </div>
         </CardContent>
@@ -225,7 +189,6 @@ export default function ProfileTab({
   );
 }
 
-// Helper component for layout consistency
 function DetailItem({
   label,
   value,
