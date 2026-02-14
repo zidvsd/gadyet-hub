@@ -1,41 +1,28 @@
 import { NextResponse, NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/auth-wrapper";
 // get single order
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const supabase = await createClient();
 
-    // get order
-    const { id: orderId } = await params;
+export const GET = withAuth(
+  async (user, req, { params }: { params: Promise<{ id: string }> }) => {
+    try {
+      const supabase = await createClient();
 
-    if (!orderId)
-      return NextResponse.json(
-        { success: false, error: "Order ID not found" },
-        { status: 400 },
-      );
+      // get order
+      const { id: orderId } = await params;
 
-    // authenticate user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      if (!orderId)
+        return NextResponse.json(
+          { success: false, error: "Order ID not found" },
+          { status: 400 },
+        );
 
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "User not authenticated" },
-        { status: 401 },
-      );
-    }
+      const userId = user.id;
 
-    const userId = user.id;
-
-    const { data, error } = await supabase
-      .from("orders")
-      .select(
-        `
+      const { data, error } = await supabase
+        .from("orders")
+        .select(
+          `
       id,
       user_id,
       total_price,
@@ -49,22 +36,23 @@ export async function GET(
         product:products(name)
       )
     `,
-      )
-      .eq("id", orderId)
-      .eq("user_id", userId)
-      .single();
+        )
+        .eq("id", orderId)
+        .eq("user_id", userId)
+        .single();
 
-    if (error)
+      if (error)
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 400 },
+        );
+
+      return NextResponse.json({ success: true, data }, { status: 200 });
+    } catch (error: any) {
       return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 },
+        { success: false, error: error.message || "Server Error" },
+        { status: 500 },
       );
-
-    return NextResponse.json({ success: true, data }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || "Server Error" },
-      { status: 500 },
-    );
-  }
-}
+    }
+  },
+);

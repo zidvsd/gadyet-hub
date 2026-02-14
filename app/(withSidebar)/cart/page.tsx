@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { EmptyState } from "@/components/Empty";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { QuantityInput } from "@/components/client/QuantityInput";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -21,15 +21,10 @@ import {
 } from "@/components/animations/StaggerContainer";
 
 export default function Page() {
-  const { items, fetchCart, loading, updateQuantity, removeFromCart } =
-    useCart();
+  const { items, loading, updateQuantity, removeFromCart } = useCart();
   const router = useRouter();
   const { users } = useUsers();
   const [showProfileModal, setShowProfileModal] = useState(false);
-
-  useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
 
   const handleCheckOut = () => {
     if (loading || !users[0]) return;

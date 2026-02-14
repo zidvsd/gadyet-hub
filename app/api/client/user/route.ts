@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-export async function GET(req: NextRequest) {
+import { withAuth } from "@/lib/auth-wrapper";
+export const GET = withAuth(async (user, req) => {
   try {
     const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "User not authenticated" },
-        { status: 401 },
-      );
-    }
 
     const { data: profile, error: profileError } = await supabase
       .from("users")
@@ -35,23 +23,11 @@ export async function GET(req: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withAuth(async (user, req) => {
   try {
     const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "User not authenticated" },
-        { status: 401 },
-      );
-    }
 
     const { data: profile, error: profileError } = await supabase
       .from("users")
@@ -102,4 +78,4 @@ export async function PATCH(req: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

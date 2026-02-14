@@ -1,72 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/auth-wrapper";
 
-export async function GET() {
-  const supabase = await createClient();
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+async function getCompleteCart(supabase: any, userId: string) {
+  const { data: cart, error: cartError } = await supabase
+    .from("carts")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "User not authenticated" },
-        { status: 401 }
-      );
-    }
+  if (cartError) throw cartError;
+  if (!cart) return { items: [] };
 
-    const { data: cart, error: cartError } = await supabase
-      .from("carts")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
+  const { data: items, error: cartItemsError } = await supabase
+    .from("cart_items")
+    .select(`*, product:products(id, name, price, image_path)`)
+    .eq("cart_id", cart.id);
 
-    if (cartError)
-      return NextResponse.json(
-        { success: false, error: cartError.message },
-        { status: 500 }
-      );
+  if (cartItemsError) throw cartItemsError;
 
-    const { data: items, error: cartItemsError } = await supabase
-      .from("cart_items")
-      .select(`*, product:products(id, name, price, image_path)`)
-      .eq("cart_id", cart.id);
-
-    if (cartItemsError) {
-      return NextResponse.json(
-        { success: false, error: cartItemsError.message },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: true, data: { ...cart, items: items ?? [] } },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || "Server Error" },
-      { status: 500 }
-    );
-  }
+  return { ...cart, items: items ?? [] };
 }
 
-export async function POST(req: NextRequest) {
+export const GET = withAuth(async (user) => {
+  try {
+    const supabase = await createClient();
+    const fullCart = await getCompleteCart(supabase, user.id);
+    return NextResponse.json({ success: true, data: fullCart });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 },
+    );
+  }
+});
+
+export const POST = withAuth(async (user, req) => {
   const supabase = await createClient();
   try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const { product_id, quantity = 1 } = await req.json();
     const productIdTrimmed = (product_id as string)?.trim();
 
@@ -81,7 +52,7 @@ export async function POST(req: NextRequest) {
       console.error("Product check failed:", productIdTrimmed);
       return NextResponse.json(
         { success: false, error: "Product not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -129,15 +100,15 @@ export async function POST(req: NextRequest) {
       if (insertError) throw insertError;
     }
 
-    // 4. Return Fresh Data
-    // Instead of calling GET() directly (which can cause header issues),
-    // it's cleaner to return a success status or re-fetch logic.
-    return GET();
+    const freshCart = await getCompleteCart(supabase, user.id);
+    return NextResponse.json(
+      { success: true, data: freshCart },
+      { status: 201 },
+    );
   } catch (error: any) {
-    console.error("Cart API Error:", error.message);
     return NextResponse.json(
       { success: false, error: error.message || "Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-}
+});

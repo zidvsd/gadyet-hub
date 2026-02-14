@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-export async function PATCH(req: NextRequest) {
+import { withAuth } from "@/lib/auth-wrapper";
+export const PATCH = withAuth(async (user, req) => {
   try {
     const { userId } = await req.json();
     const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
 
     if (user.id !== userId) {
       return NextResponse.json(
@@ -43,4 +31,4 @@ export async function PATCH(req: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

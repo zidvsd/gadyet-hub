@@ -1,25 +1,15 @@
 import { NextResponse, NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/auth-wrapper";
+
 interface OrderItemPayload {
   product_id: string;
   quantity: number;
   price: number;
 }
 // get all orders of user
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (user) => {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    return NextResponse.json(
-      { success: false, error: "User not authenticated" },
-      { status: 401 },
-    );
-  }
 
   const userId = user.id;
 
@@ -52,25 +42,11 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ success: true, data }, { status: 200 });
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (user, req) => {
   try {
     const supabase = await createClient();
-
-    // 1. Get authenticated user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "User not authenticated" },
-        { status: 401 },
-      );
-    }
-
     // 2. Parse and Validate Body
     const body = await req.json();
     const { total_price, order_items } = body;
@@ -132,10 +108,10 @@ export async function POST(req: NextRequest) {
       { status: 201 },
     );
   } catch (error: any) {
-    console.error("ORDER_POST_ERROR:", error); // Log the real error for debugging
+    console.error("ORDER_POST_ERROR:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Server Error" },
       { status: 500 },
     );
   }
-}
+});

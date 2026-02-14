@@ -28,11 +28,6 @@ export default function ProductPage() {
   const productCategory = product?.category;
   const [quantity, setQuantity] = useState(1);
   const isInitialLoading = productsLoading || cartLoading;
-  // Fetch product data
-  useEffect(() => {
-    fetchCart();
-    fetchProducts();
-  }, [fetchProducts]);
 
   // Update local product state
   useEffect(() => {

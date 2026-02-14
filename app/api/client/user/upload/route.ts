@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-export async function POST(req: NextRequest) {
+import { withAuth } from "@/lib/auth-wrapper";
+export const POST = withAuth(async (user, req) => {
   try {
     const supabase = await createClient();
     const formData = await req.formData();
     const file = formData.get("file") as File;
     if (!file) throw new Error("No file provided");
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error("Unauthorized user.");
 
     // fetch old avatar to delete
 
@@ -89,4 +84,4 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-}
+});

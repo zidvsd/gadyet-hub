@@ -1,71 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/auth-wrapper";
+export const GET = withAuth(
+  async (user, req, { params }: { params: Promise<{ id: string }> }) => {
+    try {
+      const supabase = await createClient();
+      const { id: targetUserId } = await params;
+      const requester = user;
 
-export async function GET(
-  req: NextRequest,
+      const { data: profile, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", requester.id)
+        .single();
 
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id: targetUserId } = await params;
-    const supabase = await createClient();
+      if (roleError || !profile) {
+        return NextResponse.json(
+          { error: "Profile/Role not found" },
+          { status: 403 },
+        );
+      }
+      const userRole = profile.role;
 
-    const {
-      data: { user: requester },
-      error: authError,
-    } = await supabase.auth.getUser();
+      const isAdmin = profile.role === "admin";
+      const isSelf = requester.id === targetUserId;
 
-    if (authError || !requester) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+      if (!isAdmin && !isSelf) {
+        return NextResponse.json(
+          {
+            error:
+              "Access Denied: You cannot view notifications for other users.",
+          },
+          { status: 403 },
+        );
+      }
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", targetUserId)
+        .order("created_at", { ascending: false });
 
-    const { data: profile, error: roleError } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", requester.id)
-      .single();
+      if (error) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 500 },
+        );
+      }
 
-    if (roleError || !profile) {
       return NextResponse.json(
-        { error: "Profile/Role not found" },
-        { status: 403 },
+        { success: true, role: userRole, data },
+        { status: 200 },
       );
-    }
-    const userRole = profile.role;
-
-    const isAdmin = profile.role === "admin";
-    const isSelf = requester.id === targetUserId;
-
-    if (!isAdmin && !isSelf) {
+    } catch (err: any) {
       return NextResponse.json(
-        {
-          error:
-            "Access Denied: You cannot view notifications for other users.",
-        },
-        { status: 403 },
-      );
-    }
-    const { data, error } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", targetUserId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: err.message || "Server Error" },
         { status: 500 },
       );
     }
-
-    return NextResponse.json(
-      { success: true, role: userRole, data },
-      { status: 200 },
-    );
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, error: err.message || "Server Error" },
-      { status: 500 },
-    );
-  }
-}
+  },
+);
