@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { withAuth } from "@/lib/auth-wrapper";
+import { withAuth } from "@/lib/utils/client/auth-wrapper";
 // get single order
 
 export const GET = withAuth(

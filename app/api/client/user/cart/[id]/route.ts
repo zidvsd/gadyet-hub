@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { withAuth } from "@/lib/auth-wrapper";
+import { withAuth } from "@/lib/utils/client/auth-wrapper";
 export const GET = withAuth(
   async (user, req, { params }: { params: Promise<{ id: string }> }) => {
     const supabase = await createClient();

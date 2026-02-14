@@ -5,6 +5,7 @@ import { Package, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useOrders } from "@/store/useOrders";
+import { useNotifications } from "@/store/useNotifications";
 import dynamic from "next/dynamic";
 const NotificationsTab = dynamic(
   () => import("@/components/client/account/notifications/NotificationsTab"),
@@ -22,6 +23,7 @@ export default function Page() {
   const pathname = usePathname();
 
   const { orders } = useOrders();
+  const { notifications } = useNotifications();
 
   const [currentTab, setCurrentTab] = useState(
     searchParams.get("tab") || "profile",
@@ -57,7 +59,7 @@ export default function Page() {
           <Package className="size-4" />
           <span>Orders</span>
           {orders.length > 0 && (
-            <span className="ml-1 border shadow-sm flex h-5 min-w-5 items-center justify-center rounded-full bg-background px-1 text-[10px] font-bold">
+            <span className="ml-1 shadow-sm flex h-5 min-w-5 items-center justify-center rounded-full text-white bg-destructive px-1 text-[10px] font-bold">
               {orders.length}
             </span>
           )}
@@ -71,6 +73,11 @@ export default function Page() {
           <Bell className="size-4" />
           <span className="hidden sm:block">Notifications</span>
           <span className="sm:hidden">Alerts</span>
+          {notifications.length > 0 && (
+            <span className="ml-1 shadow-sm flex h-5 min-w-5 items-center justify-center rounded-full text-white bg-destructive px-1 text-[10px] font-bold">
+              {notifications.length}
+            </span>
+          )}
         </Button>
 
         <Button

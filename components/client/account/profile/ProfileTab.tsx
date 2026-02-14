@@ -64,7 +64,7 @@ export default function ProfileTab() {
 
   return (
     <div className="animate-in fade-in duration-500 space-y-6">
-      <Card className="overflow-hidden border-none shadow-sm backdrop-blur">
+      <Card className="overflow-hidden border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-sm shadow-sm ">
         <CardContent className="flex flex-col md:flex-row items-start gap-6 p-6">
           <div className="relative w-28 h-28 shrink-0 mx-auto md:mx-0">
             <div className="relative w-full h-full rounded-full border-4 border-accent/10 bg-muted overflow-hidden flex items-center justify-center">
@@ -140,7 +140,7 @@ export default function ProfileTab() {
         />
       </div>
 
-      <Card className="border-none shadow-sm">
+      <Card className=" shadow-sm border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-sm">
         <CardContent className="p-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { withAuth } from "@/lib/auth-wrapper";
+import { withAuth } from "@/lib/utils/client/auth-wrapper";
 
 async function getCompleteCart(supabase: any, userId: string) {
   const { data: cart, error: cartError } = await supabase

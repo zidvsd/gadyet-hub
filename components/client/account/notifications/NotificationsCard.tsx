@@ -33,7 +33,7 @@ export default function NotificationsCard({
       className={cn(
         "group relative flex items-start gap-4 rounded-xl border p-4 transition-all cursor-pointer hover:bg-muted/50",
         !notification.is_read
-          ? "bg-accent/5 border-accent/20 dark:bg-accent/10"
+          ? "bg-accent/5 border-accent/20 dark:bg-accent/30"
           : "bg-transparent opacity-80",
       )}
     >
