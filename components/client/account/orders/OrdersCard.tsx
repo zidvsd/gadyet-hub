@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingBag, ChevronRight, Clock, Calendar } from "lucide-react";
+import { ShoppingBag, ChevronRight, Calendar, Clock } from "lucide-react";
 import { Order } from "@/lib/types/orders";
 import Link from "next/link";
 import { orderStatusClasses } from "@/lib/styles/badgeClasses";
@@ -23,58 +23,54 @@ export default function OrdersCard({ order }: OrdersCardProps) {
     "bg-gray-100 text-gray-800";
 
   return (
-    <div className="group relative flex items-start gap-4 rounded-xl border p-4 transition-all cursor-pointer hover:bg-muted/50 bg-transparent dark:bg-muted/70">
-      {/* Left Section: The Notification-style Icon Wrapper */}
-      <div className="shrink-0 p-2.5 rounded-full bg-accent/10 text-accent">
+    <div className="group relative flex items-start gap-4 rounded-2xl border p-4 transition-all hover:bg-muted/40 bg-background overflow-hidden">
+      {/* Icon */}
+      <div className="shrink-0 p-3 rounded-full bg-accent/10 text-accent mt-1">
         <ShoppingBag className="size-5" />
       </div>
 
-      <div className="flex flex-1 items-center justify-between gap-4 px-2">
-        {/* LEFT COLUMN: ID & Date */}
-        <div className="flex flex-col gap-1.5 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-semibold leading-none text-foreground">
+      {/* Content */}
+      <div className="flex flex-1 flex-col gap-2 min-w-0">
+        {/* Top Row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-1 min-w-0">
+            <h3 className="text-base font-semibold text-foreground">
               Order #{truncateId(order.id)}
             </h3>
 
-            <div
-              className={cn(
-                "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium tracking-wider",
-                statusStyle,
-              )}
-            >
-              {upperCaseFirstLetter(order.status)}
+            <div className="flex flex-col md:flex-row gap-0 md:gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Calendar className="size-3.5 opacity-50" />
+                <span>{formatDate(order.created_at)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="size-3.5 opacity-50" />
+                <span>{formatRelativeTime(order.created_at)}</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-x-2 text-[12px] text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="size-3" />
-              <span>{formatDate(order.created_at)}</span>
-            </div>
-            <span className="opacity-50">•</span>
-            <span>{formatRelativeTime(order.created_at)}</span>
-          </div>
-        </div>
-
-        {/* CENTERED PRICE: Flex-shrink-0 keeps it from squishing */}
-        <div className="flex items-center justify-center shrink-0">
-          <span className="text-base font-bold text-accent whitespace-nowrap">
+          <span className="text-xl font-bold text-accent whitespace-nowrap">
             ₱{formatPrice(order.total_price)}
           </span>
         </div>
 
-        {/* RIGHT COLUMN: This is where your Arrow icon or "View" button usually sits */}
-        {/* If you have a ChevronRight icon, put it here to act as the second "fixed col" */}
+        {/* Bottom Row */}
+        <div className="flex items-center justify-between">
+          <div
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-medium capitalize",
+              statusStyle,
+            )}
+          >
+            {order.status}
+          </div>
+
+          <ChevronRight className="h-5 w-5 text-muted-foreground/30 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
+        </div>
       </div>
 
-      {/* Right Section: Subtle Chevron indicating clickability */}
-      <div className="self-center ml-2">
-        <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-      </div>
-
-      {/* Clickable Link Overlay */}
-      <Link href={`/orders/${order.id}`} className="absolute inset-0">
+      <Link href={`/orders/${order.id}`} className="absolute inset-0 z-10">
         <span className="sr-only">View order {order.id}</span>
       </Link>
     </div>

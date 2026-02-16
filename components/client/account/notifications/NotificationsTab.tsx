@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNotifications } from "@/store/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { AnimatePresence, m } from "motion/react";
@@ -9,11 +9,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/Empty";
 import { Button } from "@/components/ui/button";
 import { CheckCheck } from "lucide-react";
+import { useInView } from "react-intersection-observer";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 export default function NotificationsTab() {
   const { user: currentUser } = useAuth();
+  const [notifTab, setNotifTab] = useState("All");
+  const [visibleCount, setVisibleCount] = useState(5);
+  const { ref, inView } = useInView();
+
   const { notifications, fetchNotifications, loading, markAllAsRead } =
     useNotifications();
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const filteredNotifications = notifications.filter((n) => {
+    if (notifTab === "Unread") return !n.is_read;
+    return true;
+  });
+  const displayNotifications = filteredNotifications.slice(0, visibleCount);
 
   useEffect(() => {
     if (currentUser?.id) {
@@ -21,7 +38,12 @@ export default function NotificationsTab() {
     }
   }, [currentUser?.id, fetchNotifications]);
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  // infinite scroll
+  useEffect(() => {
+    if (inView && visibleCount < filteredNotifications.length) {
+      setTimeout(() => setVisibleCount((prev) => prev + 5), 500);
+    }
+  }, [inView, filteredNotifications.length]);
 
   if (loading && notifications.length === 0) {
     return <NotificationsSkeleton />;
@@ -39,6 +61,23 @@ export default function NotificationsTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1">
+        <div className="flex gap-2">
+          <Button
+            variant={"ghost"}
+            className={notifTab === "All" ? "bg-muted font-semibold" : ""}
+            onClick={() => setNotifTab("All")}
+          >
+            All
+          </Button>
+
+          <Button
+            variant={"ghost"}
+            className={notifTab === "Unread" ? "bg-muted font-semibold" : ""}
+            onClick={() => setNotifTab("Unread")}
+          >
+            Unread
+          </Button>
+        </div>
         <h2 className="text-sm font-medium text-muted-foreground">
           You have {unreadCount} unread messages
         </h2>
@@ -55,27 +94,66 @@ export default function NotificationsTab() {
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
-        <AnimatePresence mode="popLayout" initial={false}>
-          {notifications.map((notification) => (
-            <m.div
-              key={notification.id}
-              initial={{ opacity: 0, x: -20, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{
-                duration: 0.2,
-                type: "spring",
-                stiffness: 260,
-                damping: 20,
-              }}
-              layout
-            >
-              <NotificationsCard notification={notification} />
-            </m.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      <Carousel
+        opts={{
+          align: "start",
+          dragFree: true,
+        }}
+        orientation="vertical"
+        className="w-full basis-auto select-none"
+      >
+        <CarouselContent className="-mt-1 h-[500px] scrollbar-hide">
+          <AnimatePresence mode="popLayout">
+            {displayNotifications.length > 0 ? (
+              displayNotifications.map((notification) => (
+                <CarouselItem
+                  key={notification.id}
+                  className="pt-2 basis-auto min-h-0"
+                >
+                  <m.div
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <NotificationsCard notification={notification} />
+                  </m.div>
+                </CarouselItem>
+              ))
+            ) : (
+              /* Empty state for the Unread tab */
+              <CarouselItem className="h-full flex items-center justify-center">
+                <m.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="w-full"
+                >
+                  <EmptyState
+                    title={
+                      notifTab === "Unread"
+                        ? "All caught up!"
+                        : "No notifications"
+                    }
+                    description={
+                      notifTab === "Unread"
+                        ? "You have no unread messages at the moment."
+                        : "We'll let you know when something happens!"
+                    }
+                  />
+                </m.div>
+              </CarouselItem>
+            )}
+          </AnimatePresence>
+
+          {/* Sentinel for infinite loading */}
+          {visibleCount < filteredNotifications.length && (
+            <CarouselItem className="pt-1 basis-auto">
+              <div ref={ref} className="py-4">
+                <Skeleton className="h-20 w-full rounded-xl" />
+              </div>
+            </CarouselItem>
+          )}
+        </CarouselContent>
+      </Carousel>
     </div>
   );
 }

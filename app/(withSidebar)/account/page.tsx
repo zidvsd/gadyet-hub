@@ -90,7 +90,7 @@ export default function Page() {
         </Button>
       </nav>
 
-      <main className="mt-8">
+      <main className="mt-4">
         {/* Only the active tab's JS is executed/rendered */}
         {currentTab === "orders" && <OrdersTab />}
         {currentTab === "profile" && <ProfileTab />}
