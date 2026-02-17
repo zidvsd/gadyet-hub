@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../supabase/server";
 import { supabaseAdmin } from "../../supabase/server-client";
-import { AuthError } from "@supabase/supabase-js";
 
 type AuthRole = "user" | "admin";
 

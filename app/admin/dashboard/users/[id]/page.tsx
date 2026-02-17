@@ -46,7 +46,7 @@ export default function Page() {
 
   // Fetch data
   useEffect(() => {
-    fetchUsers();
+    fetchUsers("admin");
     fetchProducts();
     if (userId) fetchOrders("admin", userId, true);
   }, [userId, fetchUsers, fetchOrders, fetchProducts]);
