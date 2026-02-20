@@ -99,7 +99,7 @@ export default function OrderDetailsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl mt-8 pb-20 px-4">
+    <div className="custom-container mt-8 pb-20 px-4">
       <BreadCrumb links={breadcrumbLinks} />
 
       {/* Main Header */}
