@@ -8,7 +8,11 @@ interface CartState {
   lastUpdated: number | null;
   isAdding: boolean;
   fetchCart: (force?: boolean, silent?: boolean) => Promise<void>;
-  addToCart: (productId: string, quantity?: number) => Promise<boolean>;
+  addToCart: (
+    productId: string,
+    stock: number,
+    quantity?: number,
+  ) => Promise<boolean>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
   removeFromCart: (cartItemId: number) => Promise<void>;
   clearCart: () => void;
@@ -61,7 +65,22 @@ export const useCart = create<CartState>((set, get) => ({
     }
   },
 
-  addToCart: async (productId, quantity = 1): Promise<boolean> => {
+  addToCart: async (
+    productId,
+    stock: number,
+    quantity = 1,
+  ): Promise<boolean> => {
+    const existingItem = get().items.find(
+      (item) => item.product_id === productId,
+    );
+    const currentInCart = existingItem?.quantity || 0;
+    const newTotalRequested = currentInCart + quantity;
+
+    if (newTotalRequested > stock) {
+      toast.error(`Only ${stock} unit/s available.`);
+      return false;
+    }
+
     set({ isAdding: true, error: null });
     try {
       const res = await fetch("/api/client/user/cart", {
@@ -87,6 +106,13 @@ export const useCart = create<CartState>((set, get) => ({
   },
 
   updateQuantity: async (cartItemId, quantity) => {
+    const item = get().items.find((i) => i.id === cartItemId);
+    const stock = item?.product?.stock ?? 0;
+    if (quantity > stock) {
+      toast.error(`Sorry, no stocks available.`);
+      return;
+    }
+
     const previousItems = get().items;
     set((state) => ({
       items: state.items.map((item) =>

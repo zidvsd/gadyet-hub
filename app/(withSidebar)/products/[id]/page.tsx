@@ -29,6 +29,12 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const isInitialLoading = productsLoading || cartLoading;
 
+  useEffect(() => {
+    fetchProducts();
+
+    fetchCart(false, true);
+  }, [products.length, fetchProducts, fetchCart]);
+
   // Update local product state
   useEffect(() => {
     const found = products.find((p) => p.id === productId);
@@ -37,7 +43,7 @@ export default function ProductPage() {
   const handleAddToCart = async () => {
     if (!product) return;
 
-    const success = await addToCart(product.id, quantity);
+    const success = await addToCart(product.id, product.stock, quantity);
 
     if (success) {
       toast.success(`Added ${product.name} to cart`, {
@@ -48,8 +54,6 @@ export default function ProductPage() {
         },
       });
       setQuantity(1); // Reset the input
-    } else {
-      toast.error(`Failed to add ${product.name} to cart`);
     }
   };
 

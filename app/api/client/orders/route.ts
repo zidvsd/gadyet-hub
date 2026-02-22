@@ -44,6 +44,8 @@ export const GET = withAuth(async (user) => {
   return NextResponse.json({ success: true, data }, { status: 200 });
 });
 
+// create order
+
 export const POST = withAuth(async (user, req) => {
   try {
     const supabase = await createClient();

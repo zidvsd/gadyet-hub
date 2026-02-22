@@ -34,6 +34,7 @@ export default function ProductCard({
   const [isAdding, setIsAdding] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
+
   if (loading || !product) {
     // Skeleton version
     return (
@@ -42,6 +43,7 @@ export default function ProductCard({
       </div>
     );
   }
+  const isOutOfStock = product.stock <= 0;
   const handleAddToCart = async () => {
     if (!product) return;
     if (!user) {
@@ -56,7 +58,7 @@ export default function ProductCard({
     }
     setIsAdding(true);
     try {
-      const success = await addToCart(product.id, 1);
+      const success = await addToCart(product.id, product.stock, 1);
 
       if (success) {
         toast.success(`${product.name} added to cart`, {
@@ -64,10 +66,6 @@ export default function ProductCard({
             label: "View Cart",
             onClick: () => router.push("/cart"),
           },
-        });
-      } else {
-        toast.error("Could not add to cart", {
-          description: "Please check your connection or login status.",
         });
       }
     } catch (err: any) {
@@ -108,19 +106,26 @@ export default function ProductCard({
         {/* Buttons at bottom */}
         <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <Button
+            disabled={isAdding || isOutOfStock}
             variant={"accent"}
-            className="flex-1 flex items-center justify-center gap-2 hover:bg-accent/90"
+            className={`flex-1 flex items-center justify-center gap-2 ${
+              isOutOfStock
+                ? "opacity-50 cursor-not-allowed grayscale"
+                : "hover:bg-accent/90"
+            }`}
             onClick={(e) => {
               e.stopPropagation();
-              handleAddToCart();
+              if (!isOutOfStock) {
+                handleAddToCart();
+              }
             }}
           >
             {isAdding ? (
-              <Spinner className="size-4 animate-spin" /> // Spinner during delay
+              <Spinner className="size-4 animate-spin" />
             ) : (
               <ShoppingCart className="size-4" />
             )}
-            {isAdding ? "Adding..." : "Add to Cart"}
+            {isOutOfStock ? "Sold Out" : isAdding ? "Adding..." : "Add to Cart"}
           </Button>
 
           <Link

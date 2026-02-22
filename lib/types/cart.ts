@@ -18,4 +18,5 @@ export interface ProductItem {
   name: string;
   price: number;
   image_path: string;
+  stock: number;
 }
