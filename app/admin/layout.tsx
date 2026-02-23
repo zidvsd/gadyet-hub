@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOrders } from "@/store/useOrders";
 import { useUsers } from "@/store/useUsers";
 import { useProducts } from "@/store/useProducts";
+import { useNotifications } from "@/store/useNotifications";
 import Link from "next/link";
 export default function AdminLayout({
   children,
@@ -16,16 +17,20 @@ export default function AdminLayout({
 }) {
   const { role, loading: authLoading } = useAuth();
   const { fetchOrders } = useOrders();
-  const { fetchUsers } = useUsers();
+  const { fetchNotifications } = useNotifications();
+  const { fetchUsers, users } = useUsers();
   const { fetchProducts } = useProducts();
+        const userId = users?.[0]?.id ;
   useEffect(() => {
     if (!authLoading && role === "admin") {
-      (Promise.all([fetchOrders("admin"), fetchUsers("admin")]),
+      (Promise.all([fetchOrders("admin"), fetchUsers("admin"),  fetchNotifications(userId)]),
         fetchProducts().catch((err) =>
           console.error("Admin data fetch failed:", err),
         ));
+        
     }
-  }, [role, authLoading]);
+  }, [role, authLoading, userId]);
+
   return (
     <SidebarProvider>
       <AppSidebar items={adminMenu} />

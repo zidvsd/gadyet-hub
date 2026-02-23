@@ -38,6 +38,7 @@ export const GET = withAuth(
         .from("notifications")
         .select("*")
         .eq("user_id", targetUserId)
+        .eq("is_read", false )
         .order("created_at", { ascending: false });
 
       if (error) {
