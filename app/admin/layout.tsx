@@ -18,18 +18,34 @@ export default function AdminLayout({
   const { role, loading: authLoading } = useAuth();
   const { fetchOrders } = useOrders();
   const { fetchNotifications } = useNotifications();
-  const { fetchUsers, users } = useUsers();
+  const { fetchUsers } = useUsers();
   const { fetchProducts } = useProducts();
-        const userId = users?.[0]?.id ;
+
   useEffect(() => {
     if (!authLoading && role === "admin") {
-      (Promise.all([fetchOrders("admin"), fetchUsers("admin"),  fetchNotifications(userId)]),
-        fetchProducts().catch((err) =>
-          console.error("Admin data fetch failed:", err),
-        ));
-        
+      const loadAdminData = async () => {
+        try {
+          await Promise.all([
+            fetchOrders("admin"),
+            fetchUsers("admin"),
+            fetchNotifications("all"),
+            fetchProducts(),
+          ]);
+        } catch (err) {
+          console.error("Admin data fetch failed:", err);
+        }
+      };
+
+      loadAdminData();
     }
-  }, [role, authLoading, userId]);
+  }, [
+    role,
+    authLoading,
+    fetchOrders,
+    fetchUsers,
+    fetchNotifications,
+    fetchProducts,
+  ]);
 
   return (
     <SidebarProvider>

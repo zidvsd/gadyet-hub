@@ -20,10 +20,23 @@ export const GET = withAuth(
           { status: 403 },
         );
       }
-      const userRole = profile.role;
 
       const isAdmin = profile.role === "admin";
       const isSelf = requester.id === targetUserId;
+
+      let query = supabase.from("notifications").select("*");
+
+      if (isAdmin && targetUserId === "all") {
+        query = query.in("type", [
+          "admin_order_alert",
+          "general",
+          "order_placed",
+        ]);
+      } else if (isAdmin || requester.id === targetUserId) {
+        query = query.eq("user_id", targetUserId);
+      } else {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
 
       if (!isAdmin && !isSelf) {
         return NextResponse.json(
@@ -34,24 +47,11 @@ export const GET = withAuth(
           { status: 403 },
         );
       }
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", targetUserId)
-        .eq("is_read", false )
-        .order("created_at", { ascending: false });
 
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: error.message },
-          { status: 500 },
-        );
-      }
-
-      return NextResponse.json(
-        { success: true, role: userRole, data },
-        { status: 200 },
-      );
+      const { data, error } = await query
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return NextResponse.json({ success: true, data });
     } catch (err: any) {
       return NextResponse.json(
         { success: false, error: err.message || "Server Error" },

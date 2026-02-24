@@ -6,6 +6,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { useNotifications } from "@/store/useNotifications";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 interface NotificationsCardProps {
   notification: Notification;
 }
@@ -13,6 +14,7 @@ interface NotificationsCardProps {
 export default function NotificationsCard({
   notification,
 }: NotificationsCardProps) {
+  const { role } = useAuth();
   const router = useRouter();
   const { markAsRead } = useNotifications();
 
@@ -28,14 +30,26 @@ export default function NotificationsCard({
     return <Bell className="size-5" />;
   };
 
+  const handleCardClick = () => {
+    if (notification.order_id) {
+      // Logic: Admin goes to dashboard, User goes to standard orders
+      const path =
+        role === "admin"
+          ? `/admin/dashboard/orders/${notification.order_id}`
+          : `/orders/${notification.order_id}`;
+
+      router.push(path);
+    }
+
+    // Mark as read if unread
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+  };
+
   return (
     <div
-      onClick={() => {
-        if (notification.order_id) {
-          router.push(`/orders/${notification.order_id}`);
-        }
-        !notification.is_read && markAsRead(notification.id);
-      }}
+      onClick={handleCardClick}
       className={cn(
         "group relative flex items-start gap-4 rounded-xl border p-4 transition-all cursor-pointer hover:bg-muted/50",
         !notification.is_read

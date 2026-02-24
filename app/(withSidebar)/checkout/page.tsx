@@ -90,7 +90,6 @@ export default function CheckoutPage() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to place order");
 
-      toast.success("Order placed successfully!");
       await fetchOrders("user", undefined, true);
       router.push(`/orders/${result.data.id}`);
 

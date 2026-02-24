@@ -48,7 +48,7 @@ export const useOrders = create<OrdersState>((set, get) => ({
     try {
       const isAdmin = role === "admin";
       let endpoint = isAdmin ? "/api/admin/orders" : "/api/client/orders";
-      if (userId) {
+      if (userId && !isAdmin) {
         endpoint += `?user_id=${userId}`;
       }
 
@@ -76,7 +76,6 @@ export const useOrders = create<OrdersState>((set, get) => ({
       set({
         error: error.message ?? "Unknown error",
         loading: false,
-        orders: [],
       });
     }
   },
