@@ -32,7 +32,6 @@ export default function OrdersPage() {
         // Use the new local action instead of a full fetch
         updateOrderLocally(result.data);
       }
-
       toast.success(`Order ${id} status successfully updated`);
     } catch (error: any) {
       toast.error("Failed to update order status", error.message);

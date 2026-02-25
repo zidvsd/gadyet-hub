@@ -5,6 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  TableMeta, // Import this
 } from "@tanstack/react-table";
 
 import {
@@ -16,23 +17,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// Add meta to the props interface
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  meta?: TableMeta<TData>; // Add this line
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  meta, // Destructure meta here
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    meta, // Pass meta to the table instance
   });
 
   return (
-    <div className="overflow-hidden rounded-md   border">
+    <div className="overflow-hidden rounded-md border">
       <Table className="bg-card">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -44,7 +49,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 );
