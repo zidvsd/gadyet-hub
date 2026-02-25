@@ -19,7 +19,7 @@ import {
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
-import { truncateId, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 export default function Page() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function Page() {
     loading: usersLoading,
     clearUsers,
   } = useUsers();
-  const { orders, fetchOrders, loading: ordersLoading } = useOrders();
+  const { userOrders, fetchOrders, loading: ordersLoading } = useOrders();
   const { fetchProducts, loading: productsLoading } = useProducts();
 
   const isLoading = usersLoading || ordersLoading || productsLoading;
@@ -73,22 +73,17 @@ export default function Page() {
     loadData();
   }, [userId, fetchUserById, fetchOrders, fetchProducts, user]);
 
-  useEffect(() => {
-    return () => {
-      // This runs when the admin leaves the user profile page
-      // It clears the 'users' array so the table page starts fresh
-      clearUsers();
-    };
-  }, [clearUsers]);
   // Compute stats
   const stats = useMemo(() => {
-    const totalOrders = orders.length;
-    const totalSpent = orders
+    const totalOrders = userOrders.length;
+    const totalSpent = userOrders
       .filter((o) => o.status === "completed")
       .reduce((acc, order) => acc + order.total_price, 0);
 
-    const pendingOrders = orders.filter((o) => o.status === "pending").length;
-    const completedOrders = orders.filter(
+    const pendingOrders = userOrders.filter(
+      (o) => o.status === "pending",
+    ).length;
+    const completedOrders = userOrders.filter(
       (o) => o.status === "completed",
     ).length;
 
@@ -118,7 +113,7 @@ export default function Page() {
         icon: <CheckCircle className="w-6 h-6" />,
       },
     ];
-  }, [orders]);
+  }, [userOrders]);
 
   // Skeletons while loading
   if (isLoading) {
@@ -190,7 +185,7 @@ export default function Page() {
 
       {/* Orders Table */}
       <div>
-        <DataTable columns={orderColumns} data={orders} />
+        <DataTable columns={orderColumns} data={userOrders} />
       </div>
     </div>
   );

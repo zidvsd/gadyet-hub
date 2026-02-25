@@ -64,12 +64,6 @@ export const useUsers = create<UsersState>((set, get) => ({
     }
   },
   fetchUserById: async (userId: string, role = "admin") => {
-    const { users } = get();
-
-    // Check if user is already in state
-    const existingUser = users.find((u) => u.id === userId);
-    if (existingUser) return;
-
     set({ loading: true, error: null });
 
     try {
@@ -90,12 +84,17 @@ export const useUsers = create<UsersState>((set, get) => ({
       const json = await res.json();
 
       if (json.success) {
+        const freshUser = json.data;
         set((state) => ({
-          users: [...state.users, json.data],
-          loading: false,
+          // Filter out the old version of this user (if it exists) and add the fresh one
+          users: state.users.some((u) => u.id === userId)
+            ? state.users.map((u) => (u.id === userId ? freshUser : u))
+            : [freshUser, ...state.users],
         }));
+        return freshUser;
       } else {
         set({ error: json.error, loading: false });
+        return null;
       }
     } catch (err: any) {
       set({ error: err.message, loading: false });
