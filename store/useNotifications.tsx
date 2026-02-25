@@ -65,7 +65,6 @@ export const useNotifications = create<NotificationsState>((set, get) => ({
 
       toast.success(newNotif.title, {
         description: newNotif.message,
-        icon: isAdminType ? "🚀" : undefined,
       });
 
       return {

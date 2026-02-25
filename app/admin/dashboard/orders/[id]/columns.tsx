@@ -68,6 +68,6 @@ export const columns: ColumnDef<OrderItemRow>[] = [
   {
     accessorKey: "price",
     header: "Subtotal",
-    cell: ({ row }) => `$${formatPrice(row.original.price)}`, // format price
+    cell: ({ row }) => `₱${formatPrice(row.original.price)}`, // format price
   },
 ];

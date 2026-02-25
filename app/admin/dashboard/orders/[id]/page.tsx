@@ -19,7 +19,7 @@ export default function Page() {
   const router = useRouter();
   const orderId = params.id as string;
 
-  const { orders, loading: ordersLoading, fetchOrders } = useOrders();
+  const { orders, loading: ordersLoading, fetchOrderById } = useOrders();
   const { users, loading: usersLoading, fetchUsers } = useUsers();
   const { products, loading: productsLoading, fetchProducts } = useProducts();
 
@@ -29,10 +29,10 @@ export default function Page() {
     "group relative bg-card p-4 overflow-hidden transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5 border-2 border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 rounded-xl";
 
   useEffect(() => {
-    fetchOrders();
-    fetchUsers();
+    fetchOrderById(orderId, "admin");
+    fetchUsers("admin");
     fetchProducts();
-  }, [fetchOrders, fetchUsers, fetchProducts]);
+  }, [fetchOrderById, fetchUsers, fetchProducts]);
 
   const order = useMemo(
     () => orders.find((o) => o.id === orderId),
@@ -100,22 +100,22 @@ export default function Page() {
                   <span>Status</span>
                   <h2
                     className={
-                      orderStatusClasses[order!.status] ??
+                      orderStatusClasses[order!?.status] ??
                       "px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium"
                     }
                   >
-                    {order!.status.charAt(0).toUpperCase() +
-                      order!.status.slice(1)}
+                    {order!?.status.charAt(0).toUpperCase() +
+                      order!?.status.slice(1)}
                   </h2>
                 </div>
                 <div className="flex justify-between">
                   <span>Date</span>
-                  <h2>{formatDate(order!.created_at)}</h2>
+                  <h2>{formatDate(order!?.created_at)}</h2>
                 </div>
                 <div className="flex justify-between">
                   <span>Total Amount</span>
                   <h2 className="text-accent">
-                    {formatPrice(order!.total_price)}
+                    {formatPrice(order!?.total_price)}
                   </h2>
                 </div>
               </div>
@@ -146,8 +146,7 @@ export default function Page() {
                     <span>Name</span>
                     <Link href={`/admin/dashboard/users/${user.id}`}>
                       <h2 className="hover-utility hover:text-accent">
-                        {user.first_name}
-                        {user.last_name}
+                        {`${user.first_name} ${user.last_name}`}
                       </h2>
                     </Link>
                   </div>

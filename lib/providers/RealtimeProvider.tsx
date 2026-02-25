@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useNotifications } from "@/store/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
 import { Notification } from "../types/notifications";
 import { useOrders } from "@/store/useOrders";
 

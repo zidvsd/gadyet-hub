@@ -54,7 +54,10 @@ export function formatTime(dateString: string) {
 }
 
 export function formatPrice(price: number | string) {
+  if (price === undefined || price === null) return "₱0.00";
   const numericPrice = typeof price === "string" ? parseFloat(price) : price;
+
+  if (isNaN(numericPrice)) return "₱0.00";
   return numericPrice.toLocaleString("en-PH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
