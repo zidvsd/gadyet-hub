@@ -1,59 +1,38 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useProducts } from "@/store/useProducts";
 import { Product } from "@/lib/types/products";
 import { toast } from "sonner";
-export default function ProductEditPage() {
-  const { id } = useParams();
-  const router = useRouter();
-  const { products, fetchProducts } = useProducts();
+import Image from "next/image";
+import { useProducts } from "@/store/useProducts";
+interface ProductFormProps {
+  initialProduct: Product;
+}
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function ProductEditPage({ initialProduct }: ProductFormProps) {
+  const router = useRouter();
+  const { fetchProducts } = useProducts();
+  const [product, setProduct] = useState<Product>(initialProduct);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    const found = products.find((p) => p.id === id);
-    if (found) {
-      setProduct(found);
-      setLoading(false);
-    }
-  }, [products, id]);
-
-  if (loading || !product) {
-    return (
-      <div className="space-y-4 max-w-2xl">
-        <Skeleton className="h-48 w-full" />
-      </div>
-    );
-  }
-
   const updateField = (key: keyof Product, value: any) => {
-    setProduct((prev) => (prev ? { ...prev, [key]: value } : prev));
+    setProduct((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = async () => {
-    if (!product) return;
     try {
       setSaving(true);
 
       const payload = {
         ...product,
-        price: Number(product?.price) || 0,
-        stock: Number(product?.stock) || 0,
-        is_active: Boolean(product?.is_active),
+        price: Number(product.price),
+        stock: Number(product.stock),
       };
 
       const res = await fetch(`/api/admin/products/${product.id}`, {
@@ -64,9 +43,13 @@ export default function ProductEditPage() {
 
       if (!res.ok) throw new Error("Failed to update product");
 
+      await fetchProducts("", true, true);
+
       toast.success("Product updated successfully");
-      router.push(`/admin/dashboard/inventory/${product.id}`);
+      router.push(`/admin/dashboard/inventory`); // Navigate back to list
+      router.refresh();
     } catch (err) {
+      toast.error("Failed to update product");
       console.error(err);
     } finally {
       setSaving(false);
@@ -75,70 +58,91 @@ export default function ProductEditPage() {
 
   return (
     <div className="space-y-6">
-      {/* Name */}
-      <div className="space-y-1">
-        <Label>Name</Label>
-        <Input
-          value={product.name}
-          onChange={(e) => updateField("name", e.target.value)}
-        />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left Side: Inputs */}
+        <div className="md:col-span-2 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Product Name</Label>
+            <Input
+              id="name"
+              value={product.name}
+              onChange={(e) => updateField("name", e.target.value)}
+              placeholder="e.g. Apple Watch Ultra 2"
+            />
+          </div>
 
-      {/* Price & Stock */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label>Price</Label>
-          <Input
-            type="number"
-            value={product.price}
-            onChange={(e) => updateField("price", Number(e.target.value))}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Price (₱)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={product.price}
+                onChange={(e) => updateField("price", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                type="number"
+                value={product.stock}
+                onChange={(e) => updateField("stock", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Input
+              id="category"
+              value={product.category}
+              onChange={(e) => updateField("category", e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <Label>Stock</Label>
+        {/* Right Side: Image Preview */}
+        <div className="space-y-4">
+          <Label>Product Image</Label>
+          <div className="aspect-square relative rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden bg-muted">
+            {product.image_path ? (
+              <Image
+                src={product.image_path}
+                alt="Preview"
+                fill
+                className="object-contain p-2"
+              />
+            ) : (
+              <span className="text-xs text-muted-foreground text-center p-4">
+                No image URL provided
+              </span>
+            )}
+          </div>
           <Input
-            type="number"
-            value={product.stock}
-            onChange={(e) => updateField("stock", e.target.value)}
+            placeholder="Image URL (https://...)"
+            value={product.image_path}
+            onChange={(e) => updateField("image_path", e.target.value)}
           />
         </div>
       </div>
 
-      {/* Category */}
-      <div className="space-y-1">
-        <Label>Category</Label>
-        <Input
-          value={product.category}
-          onChange={(e) => updateField("category", e.target.value)}
-        />
-      </div>
-
-      {/* Image */}
-      <div className="space-y-1">
-        <Label>Image URL</Label>
-        <Input
-          value={product.image_path}
-          onChange={(e) => updateField("image_path", e.target.value)}
-        />
-      </div>
-
-      {/* Description */}
-      <div className="space-y-1">
-        <Label>Description</Label>
+      <div className="space-y-2">
+        <Label htmlFor="desc">Description</Label>
         <Textarea
+          id="desc"
           rows={4}
           value={product.description}
           onChange={(e) => updateField("description", e.target.value)}
         />
       </div>
 
-      {/* Active Toggle */}
-      <div className="flex items-center justify-between rounded-lg border p-4">
-        <div>
-          <Label>Product Status</Label>
+      <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/30">
+        <div className="space-y-0.5">
+          <Label className="text-base">Visibility Status</Label>
           <p className="text-sm text-muted-foreground">
-            Inactive products won’t appear in the client store
+            Inactive products are hidden from the customer store.
           </p>
         </div>
         <Switch
@@ -147,13 +151,17 @@ export default function ProductEditPage() {
         />
       </div>
 
-      {/* Actions */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 pt-4 border-t">
         <Button variant="outline" onClick={() => router.back()}>
-          Cancel
+          Discard Changes
         </Button>
-        <Button variant={"accent"} onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save Changes"}
+        <Button
+          variant="accent"
+          onClick={handleSave}
+          disabled={saving}
+          className="min-w-[120px]"
+        >
+          {saving ? "Saving..." : "Update Product"}
         </Button>
       </div>
     </div>

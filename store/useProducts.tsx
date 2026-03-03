@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { Product } from "@/lib/types/products";
-
 interface ProductsState {
   products: Product[];
   loading: boolean;
   error: string | null;
   lastUpdated: number | null;
-  fetchProducts: (query?: string, force?: boolean) => Promise<void>;
+  fetchProducts: (
+    query?: string,
+    force?: boolean,
+    isAdmin?: boolean,
+  ) => Promise<void>;
   updateProductState: (id: string, updates: Partial<Product>) => void;
   clearProducts: () => void;
 }
@@ -17,7 +20,7 @@ export const useProducts = create<ProductsState>((set, get) => ({
   error: null,
   lastUpdated: null,
 
-  fetchProducts: async (query?: string, force?: boolean) => {
+  fetchProducts: async (query?: string, force?: boolean, isAdmin = false) => {
     const { products, lastUpdated, loading } = get();
     const now = Date.now();
 
@@ -36,8 +39,12 @@ export const useProducts = create<ProductsState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      let url = "/api/products";
-      if (query) url += `?q=${encodeURIComponent(query)}`;
+      const params = new URLSearchParams();
+      if (query) params.append("q", query);
+      if (isAdmin) params.append("admin", "true");
+
+      const queryString = params.toString();
+      const url = `/api/products${queryString ? `?${queryString}` : ""}`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error("Unable to fetch products");
@@ -49,14 +56,18 @@ export const useProducts = create<ProductsState>((set, get) => ({
         return;
       }
 
-      const data = json.data ?? json;
+      const data = Array.isArray(json.data)
+        ? json.data
+        : Array.isArray(json)
+          ? json
+          : [];
 
       set({
         products: Array.isArray(data) ? data : [],
         loading: false,
         lastUpdated: query ? lastUpdated : Date.now(),
+        error: null,
       });
-      set({ products: json.data ?? json, loading: false });
     } catch (err: any) {
       set({ error: err.message, loading: false, products: [] });
     }

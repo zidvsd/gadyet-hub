@@ -10,7 +10,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("user_id");
 
-    let query = supabaseAdmin.from("orders").select("*");
+    let query = supabaseAdmin.from("orders").select(`*, order_items(
+      quantity, price, product_id, product:products(name)
+      )`);
 
     if (userId) {
       query = query.eq("user_id", userId);

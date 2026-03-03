@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Product } from "@/lib/types/products";
-import { supabase } from "@/lib/supabase/client"; // make sure your Supabase client is imported
-import { v4 as uuidv4 } from "uuid";
+
 import { upperCaseFirstLetter } from "@/lib/utils";
 
 export default function AddProductForm() {

@@ -25,19 +25,19 @@ const chartConfig = {
   },
   completed: {
     label: "Completed",
-    color: "var(--chart-2)",
+    color: "var(--color-chart-2)",
   },
   processing: {
     label: "Processing",
-    color: "var(--chart-1)",
+    color: "var(--color-chart-1)",
   },
   pending: {
     label: "Pending",
-    color: "var(--chart-3)",
+    color: "var(--color-chart-3)",
   },
   cancelled: {
     label: "Cancelled",
-    color: "var(--chart-5)",
+    color: "var(--color-chart-5)",
   },
 } satisfies ChartConfig;
 
@@ -47,7 +47,7 @@ interface OrderPieProps {
 
 export function ChartPieLabelList({ data }: OrderPieProps) {
   return (
-    <Card className="flex flex-col  shadow-none ">
+    <Card className="flex flex-col shadow-none">
       <CardHeader className="items-center pb-0">
         <CardTitle>Order Status</CardTitle>
         <CardDescription>Current breakdown of all store orders</CardDescription>
@@ -57,7 +57,8 @@ export function ChartPieLabelList({ data }: OrderPieProps) {
           config={chartConfig}
           className="mx-auto aspect-square max-h-[300px]"
         >
-          <PieChart>
+          {/* 1. Added margin to create space for the 'outside' labels */}
+          <PieChart margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
             <ChartTooltip
               content={<ChartTooltipContent nameKey="count" hideLabel />}
             />
@@ -66,29 +67,28 @@ export function ChartPieLabelList({ data }: OrderPieProps) {
               dataKey="count"
               nameKey="status"
               innerRadius={50}
-              strokeWidth={1}
+              // 2. Reduced outerRadius to 70% to prevent it from hitting the edges
+              outerRadius="70%"
+              strokeWidth={2}
             >
-              {/* This LabelList displays the status name (e.g. Completed) outside/on edge */}
               <LabelList
                 dataKey="status"
                 className="fill-foreground capitalize"
                 stroke="none"
                 fontSize={12}
-                offset={15}
+                // 3. Adjusted offset so labels aren't too far from the pie
+                offset={10}
                 position="outside"
               />
-              {/* This LabelList displays the actual NUMBER inside the slice */}
               <LabelList
                 dataKey="count"
                 className="fill-background font-bold"
                 stroke="none"
-                fontSize={14}
+                fontSize={12}
                 position="inside"
               />
             </Pie>
-            {/* The Legend component adds the color key at the bottom */}
             <ChartLegend
-              // @ts-ignore
               content={<ChartLegendContent nameKey="status" />}
               className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
             />
@@ -96,13 +96,10 @@ export function ChartPieLabelList({ data }: OrderPieProps) {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm">
-        {/* Total orders */}
         <div className="flex items-center gap-2 font-medium leading-none">
           <Package className="size-4" />
           Total Orders: {data.reduce((sum, d) => sum + d.count, 0)}
         </div>
-
-        {/* Most common status */}
         {data.length > 0 &&
           (() => {
             const mostStatus = data.reduce((prev, curr) =>

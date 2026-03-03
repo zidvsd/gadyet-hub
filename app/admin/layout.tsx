@@ -29,7 +29,7 @@ export default function AdminLayout({
             fetchOrders("admin", undefined, true),
             fetchUsers("admin"),
             fetchNotifications(user.id),
-            fetchProducts(),
+            fetchProducts("", true, true),
           ]);
         } catch (err) {
           console.error("Admin data fetch failed:", err);

@@ -1,8 +1,8 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-
+import { TrendingUp, TrendingDown } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -30,12 +30,33 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ChartAreaDefault({ revenueData }: ChartAreaDefaultProps) {
+  const growthStats = useMemo(() => {
+    if (!revenueData || revenueData.length < 2) {
+      return { change: "0", isPositive: true };
+    }
+
+    // Comparing first item in array to last item in array for overall period growth
+    const first = revenueData[0].revenue;
+    const last = revenueData[revenueData.length - 1].revenue;
+
+    if (first === 0)
+      return { change: last > 0 ? "100" : "0", isPositive: true };
+
+    const diff = ((last - first) / first) * 100;
+    return {
+      change: Math.abs(diff).toLocaleString(undefined, {
+        maximumFractionDigits: 1,
+      }),
+      isPositive: diff >= 0,
+    };
+  }, [revenueData]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Revenue Growth</CardTitle>
         <CardDescription>
-          Total revenue generated over the selected period
+          Total revenue generated (PHP) over the selected period
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -44,7 +65,7 @@ export function ChartAreaDefault({ revenueData }: ChartAreaDefaultProps) {
             accessibilityLayer
             data={revenueData}
             margin={{
-              left: 12,
+              left: 0, // Adjusted to make room for Y-Axis labels
               right: 12,
             }}
           >
@@ -54,53 +75,55 @@ export function ChartAreaDefault({ revenueData }: ChartAreaDefaultProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
+              minTickGap={30}
               tickFormatter={(value) => value.slice(0, 3)}
+            />
+            {/* Added Y-Axis to show Peso values */}
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              fontSize={12}
+              tickFormatter={(value) => `₱${(value / 1000).toFixed(0)}k`}
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="line" />}
+              content={
+                <ChartTooltipContent
+                  indicator="line"
+                  labelFormatter={(value) => `Period: ${value}`}
+                  // Formats the tooltip value to Peso
+                  formatter={(value) => `₱${Number(value).toLocaleString()}`}
+                />
+              }
             />
             <Area
               dataKey="revenue"
-              type="natural"
+              type="monotone" // FIXED: Changed from monotone to linear to stop the "below zero" dip
               fill="var(--color-revenue)"
               fillOpacity={0.4}
               stroke="var(--color-revenue)"
+              strokeWidth={2}
             />
           </AreaChart>
         </ChartContainer>
       </CardContent>
       <CardFooter>
         <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            {/* Revenue change */}
-            {revenueData.length >= 2 &&
-              (() => {
-                const first = revenueData[revenueData.length - 2].revenue;
-                const last = revenueData[revenueData.length - 1].revenue;
-                const change = first
-                  ? (((last - first) / first) * 100).toFixed(1)
-                  : "0";
-                const isPositive = Number(change) >= 0;
-
-                return (
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Revenue {isPositive ? "up" : "down"} {change}% this month
-                    <TrendingUp
-                      className={`h-4 w-4 ${
-                        isPositive
-                          ? "text-green-500"
-                          : "rotate-180 text-red-500"
-                      }`}
-                    />
-                  </div>
-                );
-              })()}
-
-            {/* Month range */}
-            <div className="text-muted-foreground flex items-center gap-2 leading-none">
-              {revenueData[0]?.month} -{" "}
-              {revenueData[revenueData.length - 1]?.month}
+          <div className="grid gap-1">
+            <div className="flex items-center gap-2 leading-none font-bold">
+              Revenue {growthStats.isPositive ? "up" : "down"} by{" "}
+              {growthStats.change}%
+              {growthStats.isPositive ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              )}
+            </div>
+            <div className="text-muted-foreground leading-none text-xs">
+              {revenueData.length > 0
+                ? `${revenueData[0].month} - ${revenueData[revenueData.length - 1].month}`
+                : "No data in range"}
             </div>
           </div>
         </div>

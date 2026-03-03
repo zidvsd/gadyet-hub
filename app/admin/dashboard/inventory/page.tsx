@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useProducts } from "@/store/useProducts";
 import { columns } from "./columns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +13,10 @@ export default function InventoryPage() {
   const { products, loading, fetchProducts, updateProductState } =
     useProducts();
 
-  // Memoize stats to prevent calculation on every toggle
+  useEffect(() => {
+    fetchProducts("", true, true);
+  }, [fetchProducts]);
+
   const stats = useMemo(
     () => ({
       total: products.length,
@@ -51,7 +54,7 @@ export default function InventoryPage() {
       });
       if (!res.ok) throw new Error();
       toast.success("Item deleted successfully");
-      await fetchProducts(undefined, true);
+      await fetchProducts("", true, true);
     } catch (error) {
       toast.error("Failed to delete item");
     }
