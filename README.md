@@ -1,10 +1,20 @@
 # GadyetHub
 
-A modern e-commerce marketplace platform for electronics and accessories, built with Next.js, TypeScript, and Supabase. Features a responsive design with dual role support (customer & admin), real-time data management, and a sleek dark/light mode UI.
+## What this project does
+
+A modern e-commerce marketplace platform for electronics and accessories, built with Next.js, TypeScript, and Supabase. It provides both a customer‑facing storefront and an admin dashboard, complete with authentication, product management, order workflows, and a responsive dark/light UI.
+
+## Why it’s useful
+
+This starter kit is intended for developers who want a working, full‑stack e‑commerce example using the latest Next.js features. It can be used as:
+
+- A learning resource to understand client/server integration with Supabase
+- A foundation for launching your own store or adapting to other domains
+- A reusable template with authentication, admin tooling, and real‑time updates
 
 ## Table of Contents
 
-- [Features](#features)
+- [Key features](#key-features)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -15,32 +25,36 @@ A modern e-commerce marketplace platform for electronics and accessories, built 
 - [Development](#development)
 - [Contributing](#contributing)
 
-## Features
+## Key features
 
-✨ **Customer-Facing Features**
-- 📱 **Responsive Design** – Navbar on desktop, collapsible sidebar on mobile/tablet
-- 🛒 **Product Browsing** – Browse products by category with detailed product pages
-- 🛍️ **Shopping Cart** – Add items to cart and manage orders
-- 📦 **Order Management** – View and track your orders
-- 🔔 **Notifications** – Real-time notifications and alerts
-- 🌓 **Dark/Light Mode** – Theme toggle for user preference
+**Customer-Facing Features**
 
-🔐 **Admin Dashboard**
-- 📊 **Dashboard Overview** – High-level business metrics and KPIs
-- 📈 **Orders Management** – View, filter, and update order statuses
-- 📦 **Inventory Management** – Add, edit, and delete products; manage stock levels
-- 👥 **User Management** – View and manage customer accounts
-- 🔔 **Notifications Panel** – Monitor system events and alerts
+- **Responsive Design** – Navbar on desktop, collapsible sidebar on mobile/tablet
+- **Product Browsing** – Browse products by category with detailed product pages
+- **Shopping Cart** – Add items to cart and manage orders
+- **Order Management** – View and track your orders
+- **Notifications** – Real-time notifications and alerts
+- **Dark/Light Mode** – Theme toggle for user preference
 
-🔑 **Authentication & Authorization**
-- 🔐 Email/password authentication via Supabase Auth
-- 👤 Role-based access control (Customer / Admin)
-- 📍 Session persistence with secure cookies
-- 🔒 Protected routes and API endpoints
+**Admin Dashboard**
+
+- **Dashboard Overview** – High-level business metrics and KPIs
+- **Orders Management** – View, filter, and update order statuses
+- **Inventory Management** – Add, edit, and delete products; manage stock levels
+- **User Management** – View and manage customer accounts
+- **Notifications Panel** – Monitor system events and alerts
+
+**Authentication & Authorization**
+
+- Email/password authentication via Supabase Auth
+- Role-based access control (Customer / Admin)
+- Session persistence with secure cookies
+- Protected routes and API endpoints
 
 ## Tech Stack
 
 **Frontend**
+
 - [Next.js 16](https://nextjs.org) – React framework with App Router
 - [React 19](https://react.dev) – UI library
 - [TypeScript](https://www.typescriptlang.org) – Type-safe code
@@ -50,16 +64,19 @@ A modern e-commerce marketplace platform for electronics and accessories, built 
 - [Next Themes](https://next-themes.js.org) – Dark mode support
 
 **State & Data**
+
 - [Zustand](https://zustand-demo.pmnd.rs/) – Lightweight state management
 - [@tanstack/react-table](https://tanstack.com/table/) – Headless table component
 - [Sonner](https://sonner.emilkowal.ski/) – Toast notifications
 
 **Backend & Database**
+
 - [Supabase](https://supabase.com) – PostgreSQL + Auth + Real-time APIs
 - [@supabase/supabase-js](https://github.com/supabase/supabase-js) – JS client
 - [@supabase/ssr](https://github.com/supabase/ssr) – Server-side rendering support
 
 **Developer Tools**
+
 - [ESLint 9](https://eslint.org) – Code linting
 - [TypeScript 5](https://www.typescriptlang.org) – Type checking
 
@@ -75,6 +92,7 @@ Before you begin, ensure you have the following installed:
 ## Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/zidvsd/gadyethub.git
    cd gadyethub
@@ -95,6 +113,9 @@ Create a `.env.local` file in the root directory with your Supabase credentials:
 # Supabase Public Keys (safe to expose)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Optional server‑side secret (used for service‑role operations)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 ### Getting Supabase Credentials
@@ -247,21 +268,25 @@ gadyethub/
 ### Key Technologies & Patterns
 
 **Component Architecture**
+
 - Server components by default; use `"use client"` for interactivity
 - Reusable UI components from `components/ui/`
 - Custom hooks in `hooks/` for shared logic
 
 **State Management**
+
 - **Zustand stores** (`store/`) for products and orders
 - **Local state** (React hooks) for form handling
 - **Supabase real-time** for live updates
 
 **Styling**
+
 - Tailwind CSS for utility-first styling
 - CSS modules for component-specific styles (if needed)
 - Dark mode support via Next Themes
 
 **Type Safety**
+
 - Full TypeScript support
 - Type definitions in `lib/types/`
 - Strict mode enabled
@@ -269,33 +294,37 @@ gadyethub/
 ### Common Development Tasks
 
 **Add a new page**
+
 1. Create file in `app/(withSidebar)/` or `app/admin/`
 2. Use route-specific layout or create custom layout
 3. Import components and data as needed
 
 **Add a new API endpoint**
+
 1. Create file in `app/api/<scope>/`
 2. Export async handler (GET, POST, PATCH, DELETE)
 3. Use `requireAdmin()` utility for admin routes
 4. Return standardized response: `{ success: boolean, data?: any, error?: string }`
 
 **Add a new component**
+
 1. Create file in `components/`
 2. Use Radix UI components for headless UI
 3. Import Lucide icons for consistent iconography
 4. Add TypeScript props interface
 
 **Fetch data from Zustand store**
+
 ```tsx
 import { useProducts } from "@/store/useProducts";
 
 export default function MyComponent() {
   const { products, loading, error, fetchProducts } = useProducts();
-  
+
   useEffect(() => {
     fetchProducts();
   }, []);
-  
+
   return <div>{/* render products */}</div>;
 }
 ```
@@ -327,10 +356,10 @@ Contributions are welcome! Please follow these guidelines:
 
 ## License
 
-This project is private. For licensing questions, contact the maintainer.
+This project does not include a license file; add one or contact the maintainer.
 
 ---
 
 **Maintainer**: [@zidvsd](https://github.com/zidvsd)
 
-Built with ❤️ using Next.js, React, and Supabase.
+Built with Next.js, React, and Supabase.
