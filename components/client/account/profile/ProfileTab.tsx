@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Phone,
   Calendar,
@@ -14,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-// Data Hooks (Imported directly here)
+// Data Hooks
 import { useOrders } from "@/store/useOrders";
 import { useUsers } from "@/store/useUsers";
 // UI Components
@@ -29,13 +30,12 @@ import { formatPrice, formatDateFull, truncateId } from "@/lib/utils";
 export default function ProfileTab() {
   const [toggleTruncate, setToggleTruncate] = useState(true);
 
-  // 1. Fetching data directly in the child
   const { users, loading: userLoading } = useUsers();
   const { orders, loading: ordersLoading } = useOrders();
 
   const isLoading = userLoading || ordersLoading;
   const user = users[0];
-  // 2. Memoized Calculations
+
   const stats = useMemo(() => {
     if (!orders) return { totalCount: 0, completedCount: 0, totalSpent: 0 };
     const completed = orders.filter((o) => o.status === "completed");
@@ -143,6 +143,7 @@ export default function ProfileTab() {
       <Card className=" shadow-sm border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-sm">
         <CardContent className="p-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Column 1: Identity */}
             <div className="space-y-6">
               <DetailItem
                 label="Full Name"
@@ -154,7 +155,9 @@ export default function ProfileTab() {
                 badge="Verified"
               />
             </div>
-            <div className="space-y-6">
+
+            {/* Column 2: Security & ID */}
+            <div className="space-y-8">
               <div>
                 <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">
                   Account ID
@@ -178,6 +181,25 @@ export default function ProfileTab() {
                     onClick={handleCopyId}
                   >
                     <Copy className="size-3 mr-1" /> Copy
+                  </Button>
+                </div>
+              </div>
+
+              {/* Password Section Moved Here */}
+              <div>
+                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">
+                  Password
+                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-base font-medium tracking-widest">
+                    ••••••••
+                  </p>
+                  <Button
+                    variant="link"
+                    className="h-auto p-0 text-xs text-primary font-medium"
+                    asChild
+                  >
+                    <Link href="/forgot-password">Change Password</Link>
                   </Button>
                 </div>
               </div>
