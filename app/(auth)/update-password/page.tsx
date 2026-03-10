@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
@@ -30,6 +31,7 @@ export default function UpdatePasswordPage() {
 
     if (result.success) {
       toast.success("Password updated successfully!");
+      redirect("/");
     } else {
       toast.error(result.message);
     }

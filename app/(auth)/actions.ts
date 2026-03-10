@@ -5,7 +5,7 @@ export async function resetPasswordAction(email: string) {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/confirm?next=/update-password`,
+    redirectTo: `https://gadyet-hub.vercel.app/api/auth/confirm?next=/update-password`,
   });
 
   if (error) {
